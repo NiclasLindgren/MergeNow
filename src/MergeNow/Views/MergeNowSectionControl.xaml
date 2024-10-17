@@ -22,16 +22,21 @@
 
         <TextBlock Text="Changeset" Margin="0,10,0,0" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0"/>
         <TextBox Margin="5,10,1,0" Height="22" Grid.Row="0" Grid.Column="1"
+                Text="{Binding Changeset, UpdateSourceTrigger=PropertyChanged}"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.TextBoxStyleKey}}"/>
 
         <Button Content="Find" Margin="5,5,0,0" HorizontalAlignment="Left" Width="120" Height="22" Grid.Row="1" Grid.Column="1"
+                Command="{Binding FindCommand}"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}"/>
 
         <TextBlock Text="Merge To" Margin="0,20,0,0" VerticalAlignment="Center" Grid.Row="2" Grid.Column="0" />
         <ComboBox Margin="5,20,1,0" Height="22" Grid.Row="2" Grid.Column="1"
+                ItemsSource="{Binding TargetBranches}" SelectedItem="{Binding SelectedTargetBranch}"
+                IsEnabled="{Binding AnyTargetBranches}"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ComboBoxStyleKey}}"/>
 
         <Button Content="Merge" Margin="5,5,0,0" HorizontalAlignment="Left" Width="120" Height="22" Grid.Row="3" Grid.Column="1"
+                Command="{Binding MergeCommand}"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}"/>
     </Grid>
 </UserControl>
