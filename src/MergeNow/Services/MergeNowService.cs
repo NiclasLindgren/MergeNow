@@ -1,4 +1,5 @@
 ﻿using EnvDTE;
+using MergeNow.Utils;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Framework.Common;
@@ -6,17 +7,18 @@ using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.TeamFoundation.VersionControl.Common;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TeamFoundation;
-using Microsoft.VisualStudio.TeamFoundation.VersionControl;
 using Microsoft.VisualStudio.Threading;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MergeNow.Services
 {
+#pragma warning disable S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
+
     internal class MergeNowService : IMergeNowService
     {
         private readonly AsyncPackage _asyncPackage;
@@ -38,7 +40,6 @@ namespace MergeNow.Services
             var versionControlServer = await GetVersionControlAsync();
 
             Changeset tfsChangeset = versionControlServer.GetChangeset(changesetNumber);
-
             if (changeset == null)
             {
                 throw new InvalidOperationException($"Changeset '{changeset}' does not exist.");
@@ -47,10 +48,11 @@ namespace MergeNow.Services
             var targetBranches = new List<string>();
 
             var branchOwnerships = versionControlServer.QueryBranchObjectOwnership(new[] { tfsChangeset.ChangesetId });
+            var sourceBranches = branchOwnerships.Select(bo => bo.RootItem.Item).ToList();
 
-            foreach (BranchObjectOwnership branchOwnership in branchOwnerships)
+            foreach (var sourceBranch in sourceBranches)
             {
-                var branches = versionControlServer.QueryMergeRelationships(branchOwnership.RootItem.Item)
+                var branches = versionControlServer.QueryMergeRelationships(sourceBranch)
                     .Where(i => !i.IsDeleted)
                     .Select(i => i.Item)
                     .Reverse();
@@ -75,18 +77,32 @@ namespace MergeNow.Services
 
             var versionControlServer = await GetVersionControlAsync();
 
-            var branchOwnerships = versionControlServer.QueryBranchObjectOwnership(new[] { changesetNumber });
-
-            Workspace workspace = await GetCurrentWorkspaceAsync();
-
-            foreach (BranchObjectOwnership branchOwnership in branchOwnerships)
+            Changeset tfsChangeset = versionControlServer.GetChangeset(changesetNumber);
+            if (changeset == null)
             {
-                var sourcBranch = branchOwnership.RootItem.Item;
-                ChangesetVersionSpec changesetVersionSpec = new ChangesetVersionSpec(changeset);
-                workspace.Merge(sourcBranch, targetBranch, changesetVersionSpec, changesetVersionSpec, LockLevel.None, RecursionType.Full, MergeOptionsEx.None);
+                throw new InvalidOperationException($"Changeset '{changeset}' does not exist.");
             }
 
+            BranchObjectOwnership[] branchOwnerships = versionControlServer.QueryBranchObjectOwnership(new[] { changesetNumber });
+            var sourceBranches = branchOwnerships.Select(bo => bo.RootItem.Item).ToList();
+
             var pendingChangesPage = await GetPendingChangesPageAsync();
+            Workspace workspace = GetCurrentWorkspace(pendingChangesPage);
+            ChangesetVersionSpec changesetVersionSpec = new ChangesetVersionSpec(changeset);
+
+            foreach (var sourceBranch in sourceBranches)
+            {
+                workspace.Merge(sourceBranch, targetBranch, changesetVersionSpec, changesetVersionSpec, LockLevel.None, RecursionType.Full, MergeOptionsEx.None);
+            }
+
+            var mergeComment = GetMergeComment(sourceBranches, targetBranch, tfsChangeset);
+            SetMergeComment(mergeComment, pendingChangesPage);
+
+            foreach (var workItem in tfsChangeset.WorkItems)
+            {
+                AssociateWorkItem(workItem.Id, pendingChangesPage);
+            }
+
             pendingChangesPage.Refresh();
         }
 
@@ -141,18 +157,73 @@ namespace MergeNow.Services
             return pendingChangesPage;
         }
 
-        [SuppressMessage("Major Code Smell", "S3011:Reflection should not be used to increase accessibility of classes, methods, or fields", Justification = "No other way to get workspace")]
-        private async Task<Workspace> GetCurrentWorkspaceAsync()
+        private static object GetPendingChangesPageModel(ITeamExplorerPage pendingChangesPage)
         {
-            var pendingChangesPage = await GetPendingChangesPageAsync();
-
             var modelProperty = pendingChangesPage.GetType().GetProperty("Model", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
             var model = modelProperty.GetValue(pendingChangesPage);
+            return model;
+        }
+
+        private static Workspace GetCurrentWorkspace(ITeamExplorerPage pendingChangesPage)
+        {
+            var model = GetPendingChangesPageModel(pendingChangesPage);
 
             var workspaceProperty = model.GetType().GetProperty("Workspace", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             var workspace = workspaceProperty.GetValue(model) as Workspace;
 
             return workspace;
         }
+
+        private static string GetMergeComment(List<string> sourceBranches, string targetBranch, Changeset changeset)
+        {
+            var builder = new StringBuilder();
+            builder.Append("Merge ");
+
+            for (int i = 0; i < sourceBranches.Count; i++)
+            {
+                if (i > 0)
+                {
+                    builder.Append(", ");
+                }
+
+                string sourceBranch = sourceBranches[i];
+                var commonPrefix = StringUtils.FindCommonPrefix(sourceBranch, targetBranch);
+                var sourceBranchShort = sourceBranch.Substring(commonPrefix.Length);
+                var targetBranchShort = targetBranch.Substring(commonPrefix.Length);
+
+                builder.Append($"{sourceBranchShort}->{targetBranchShort}");
+            }
+
+            builder.Append($", c{changeset.ChangesetId}");
+            builder.Append($", {changeset.Comment}");
+
+            return builder.ToString();
+        }
+
+        private static void SetMergeComment(string comment, ITeamExplorerPage pendingChangesPage)
+        {
+            var model = GetPendingChangesPageModel(pendingChangesPage);
+
+            var commentProperty = model.GetType().GetProperty("CheckinComment", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            if (commentProperty != null && commentProperty.CanWrite)
+            {
+                commentProperty.SetValue(model, comment);
+            }
+        }
+
+        private static void AssociateWorkItem(int workItemId, ITeamExplorerPage pendingChangesPage)
+        {
+            var model = GetPendingChangesPageModel(pendingChangesPage);
+
+            var modelType = model.GetType();
+            var method = modelType.GetMethod("AddWorkItemsByIdAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            var enumType = modelType.BaseType.GetNestedType("WorkItemsAddSource", BindingFlags.NonPublic);
+            var addByIdValue = Enum.Parse(enumType, "AddById");
+
+            method.Invoke(model, new object[] { new int[] { workItemId }, addByIdValue });
+        }
     }
+
+#pragma warning restore S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
 }
