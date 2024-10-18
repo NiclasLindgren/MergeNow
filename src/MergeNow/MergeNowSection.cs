@@ -18,7 +18,7 @@ namespace MergeNow
 
         public MergeNowSection()
         {
-            _sectionContent = new MergeNowSectionControl();
+            _sectionContent = MergeNowPackage.Resolve<MergeNowSectionControl>();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

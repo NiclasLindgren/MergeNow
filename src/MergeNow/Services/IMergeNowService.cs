@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MergeNow.Services
 {
     public interface IMergeNowService
     {
-        IEnumerable<string> GetTargetBranches(string changeset);
+        Task<IEnumerable<string>> GetTargetBranchesAsync(string changeset);
 
-        void Merge(string changeset, string targetBranch);
+        Task MergeAsync(string changeset, string targetBranch);
     }
 }

@@ -1,8 +1,11 @@
 ﻿using MergeNow.Mvvm;
+using MergeNow.Mvvm.Commands;
 using MergeNow.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
 
 namespace MergeNow.ViewModels
 {
@@ -14,10 +17,10 @@ namespace MergeNow.ViewModels
         {
             _mergeNowService = mergeNowService;
 
-            FindCommand = new RelayCommand(FindChangeset, CanFindChangeset);
+            FindCommand = new AsyncCommand(HandleCommandError, FindChangesetAsync, CanFindChangeset);
             LinkToViewModel(FindCommand);
 
-            MergeCommand = new RelayCommand(MergeChangeset, CanMergeChangeset);
+            MergeCommand = new AsyncCommand(HandleCommandError, MergeChangesetAsync, CanMergeChangeset);
             LinkToViewModel(MergeCommand);
 
             TargetBranches = new ObservableCollection<string>();
@@ -26,8 +29,8 @@ namespace MergeNow.ViewModels
             Changeset = string.Empty;
         }
 
-        public RelayCommand FindCommand { get; }
-        public RelayCommand MergeCommand { get; }
+        public AsyncCommand FindCommand { get; }
+        public AsyncCommand MergeCommand { get; }
 
         private string _changeset;
         public string Changeset
@@ -53,12 +56,12 @@ namespace MergeNow.ViewModels
 
         public bool AnyTargetBranches => TargetBranches.Any();
 
-        private void FindChangeset()
+        private async Task FindChangesetAsync()
         {
             SelectedTargetBranch = null;
             TargetBranches.Clear();
 
-            var branches = _mergeNowService.GetTargetBranches(Changeset);
+            var branches = await _mergeNowService.GetTargetBranchesAsync(Changeset);
             branches?.ToList().ForEach(branch => TargetBranches.Add(branch));
         }
 
@@ -69,14 +72,24 @@ namespace MergeNow.ViewModels
                 number > 0;
         }
 
-        private void MergeChangeset()
+        private Task MergeChangesetAsync()
         {
-            _mergeNowService.Merge(Changeset, SelectedTargetBranch);
+            return _mergeNowService.MergeAsync(Changeset, SelectedTargetBranch);
         }
 
         private bool CanMergeChangeset()
         {
             return !string.IsNullOrWhiteSpace(SelectedTargetBranch);
+        }
+
+        private static void HandleCommandError(Exception exception)
+        {
+            if (exception == null)
+            {
+                return;
+            }
+
+            MessageBox.Show(exception.Message, "Merge Now", MessageBoxButton.OK, MessageBoxImage.Exclamation);
         }
     }
 }

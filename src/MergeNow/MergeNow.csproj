@@ -46,13 +46,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="MergeNowSection.cs" />
+    <Compile Include="Mvvm\Commands\BaseCommand.cs" />
+    <Compile Include="Mvvm\Commands\IAsyncCommand.cs" />
+    <Compile Include="Mvvm\Commands\IBaseCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MergeNowPackage.cs" />
     <Compile Include="Services\IMergeNowService.cs" />
     <Compile Include="Services\MergeNowService.cs" />
-    <Compile Include="ViewModels\BaseViewModel.cs" />
+    <Compile Include="Mvvm\BaseViewModel.cs" />
     <Compile Include="ViewModels\MergeNowSectionViewModel.cs" />
-    <Compile Include="Mvvm\RelayCommand.cs" />
+    <Compile Include="Mvvm\Commands\AsyncCommand.cs" />
     <Compile Include="Views\MergeNowSectionControl.xaml.cs">
       <DependentUpon>MergeNowSectionControl.xaml</DependentUpon>
     </Compile>
@@ -77,6 +80,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection">
+      <Version>8.0.1</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.32112.339" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.11.439" />
   </ItemGroup>

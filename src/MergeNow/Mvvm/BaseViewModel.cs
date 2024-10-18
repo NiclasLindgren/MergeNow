@@ -1,11 +1,10 @@
-﻿using EnvDTE;
-using MergeNow.Mvvm;
+﻿using MergeNow.Mvvm.Commands;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace MergeNow.ViewModels
+namespace MergeNow.Mvvm
 {
     public abstract class BaseViewModel : INotifyPropertyChanged
     {
@@ -20,7 +19,7 @@ namespace MergeNow.ViewModels
             }
         }
 
-        protected void LinkToViewModel(RelayCommand command)
+        protected void LinkToViewModel(IBaseCommand command)
         {
             if (command == null)
             {
