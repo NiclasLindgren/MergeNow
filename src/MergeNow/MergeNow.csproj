@@ -69,8 +69,23 @@
     <Reference Include="Microsoft.TeamFoundation.Client">
       <HintPath>..\..\libs\Microsoft.TeamFoundation.Client.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Common">
+      <HintPath>..\..\libs\Microsoft.TeamFoundation.Common.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.TeamFoundation.Controls">
       <HintPath>..\..\libs\Microsoft.TeamFoundation.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.VersionControl.Client">
+      <HintPath>..\..\libs\Microsoft.TeamFoundation.VersionControl.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.VersionControl.Common">
+      <HintPath>..\..\libs\Microsoft.TeamFoundation.VersionControl.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.TeamFoundation">
+      <HintPath>..\..\libs\Microsoft.VisualStudio.TeamFoundation.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.TeamFoundation.VersionControl">
+      <HintPath>..\..\libs\Microsoft.VisualStudio.TeamFoundation.VersionControl.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
