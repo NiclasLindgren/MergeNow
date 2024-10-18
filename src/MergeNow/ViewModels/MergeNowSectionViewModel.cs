@@ -17,10 +17,10 @@ namespace MergeNow.ViewModels
         {
             _mergeNowService = mergeNowService;
 
-            FindCommand = new AsyncCommand(HandleCommandError, FindChangesetAsync, CanFindChangeset);
+            FindCommand = new AsyncCommand(ShowError, FindChangesetAsync, CanFindChangeset);
             LinkToViewModel(FindCommand);
 
-            MergeCommand = new AsyncCommand(HandleCommandError, MergeChangesetAsync, CanMergeChangeset);
+            MergeCommand = new AsyncCommand(ShowError, MergeChangesetAsync, CanMergeChangeset);
             LinkToViewModel(MergeCommand);
 
             TargetBranches = new ObservableCollection<string>();
@@ -82,7 +82,7 @@ namespace MergeNow.ViewModels
             return !string.IsNullOrWhiteSpace(SelectedTargetBranch);
         }
 
-        private static void HandleCommandError(Exception exception)
+        private static void ShowError(Exception exception)
         {
             if (exception == null)
             {

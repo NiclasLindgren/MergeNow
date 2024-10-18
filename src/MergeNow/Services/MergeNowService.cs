@@ -20,12 +20,12 @@ namespace MergeNow.Services
     internal class MergeNowService : IMergeNowService
     {
         private readonly AsyncPackage _asyncPackage;
-        private AsyncLazy<VersionControlServer> _versionControlTask;
+        private AsyncLazy<VersionControlServer> _versionControlConnectionTask;
 
         public MergeNowService(AsyncPackage asyncPackage)
         {
             _asyncPackage = asyncPackage ?? throw new ArgumentNullException(nameof(asyncPackage));
-            CreateVersionControlTask();
+            RenewVersionControlConnectection();
         }
 
         public async Task<IEnumerable<string>> GetTargetBranchesAsync(string changeset)
@@ -86,30 +86,29 @@ namespace MergeNow.Services
                 workspace.Merge(sourcBranch, targetBranch, changesetVersionSpec, changesetVersionSpec, LockLevel.None, RecursionType.Full, MergeOptionsEx.None);
             }
 
-            var teamExplorer = (ITeamExplorer)await _asyncPackage.GetServiceAsync(typeof(ITeamExplorer));
-            var page = teamExplorer.NavigateToPage(new Guid("FD273AA7-0538-474B-954F-2327F91CEF5E"), null);
-            var pendingChangesExt = page.GetExtensibilityService(typeof(PendingChangesExt)) as PendingChangesExt;
+            var pendingChangesPage = await GetPendingChangesPageAsync();
+            pendingChangesPage.Refresh();
         }
 
         private async Task<VersionControlServer> GetVersionControlAsync()
         {
             try
             {
-                return await _versionControlTask.GetValueAsync();
+                return await _versionControlConnectionTask.GetValueAsync();
             }
             catch
             {
-                CreateVersionControlTask();
+                RenewVersionControlConnectection();
                 throw;
             }
         }
 
-        private void CreateVersionControlTask()
+        private void RenewVersionControlConnectection()
         {
-            _versionControlTask = new AsyncLazy<VersionControlServer>(GetVersionControlServerAsync, ThreadHelper.JoinableTaskFactory);
+            _versionControlConnectionTask = new AsyncLazy<VersionControlServer>(ConnectToVersionControlAsync, ThreadHelper.JoinableTaskFactory);
         }
 
-        private async Task<VersionControlServer> GetVersionControlServerAsync()
+        private async Task<VersionControlServer> ConnectToVersionControlAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_asyncPackage.DisposalToken);
             var dte = (DTE)await _asyncPackage.GetServiceAsync(typeof(DTE));
