@@ -11,14 +11,11 @@ using Microsoft.VisualStudio.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace MergeNow.Services
 {
-#pragma warning disable S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
-
     internal class MergeNowService : IMergeNowService
     {
         private readonly AsyncPackage _asyncPackage;
@@ -159,18 +156,14 @@ namespace MergeNow.Services
 
         private static object GetPendingChangesPageModel(ITeamExplorerPage pendingChangesPage)
         {
-            var modelProperty = pendingChangesPage.GetType().GetProperty("Model", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
-            var model = modelProperty.GetValue(pendingChangesPage);
+            var model = ReflectionUtils.GetProperty("Model", pendingChangesPage);
             return model;
         }
 
         private static Workspace GetCurrentWorkspace(ITeamExplorerPage pendingChangesPage)
         {
             var model = GetPendingChangesPageModel(pendingChangesPage);
-
-            var workspaceProperty = model.GetType().GetProperty("Workspace", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            var workspace = workspaceProperty.GetValue(model) as Workspace;
+            var workspace = ReflectionUtils.GetProperty<Workspace>("Workspace", model);
 
             return workspace;
         }
@@ -204,26 +197,17 @@ namespace MergeNow.Services
         private static void SetMergeComment(string comment, ITeamExplorerPage pendingChangesPage)
         {
             var model = GetPendingChangesPageModel(pendingChangesPage);
-
-            var commentProperty = model.GetType().GetProperty("CheckinComment", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (commentProperty != null && commentProperty.CanWrite)
-            {
-                commentProperty.SetValue(model, comment);
-            }
+            ReflectionUtils.SetProperty("CheckinComment", model, comment);
         }
 
         private static void AssociateWorkItem(int workItemId, ITeamExplorerPage pendingChangesPage)
         {
             var model = GetPendingChangesPageModel(pendingChangesPage);
 
-            var modelType = model.GetType();
-            var method = modelType.GetMethod("AddWorkItemsByIdAsync", BindingFlags.Instance | BindingFlags.NonPublic);
-            var enumType = modelType.BaseType.GetNestedType("WorkItemsAddSource", BindingFlags.NonPublic);
+            var enumType = ReflectionUtils.GetNestedType("WorkItemsAddSource", model.GetType().BaseType);
             var addByIdValue = Enum.Parse(enumType, "AddById");
 
-            method.Invoke(model, new object[] { new int[] { workItemId }, addByIdValue });
+            ReflectionUtils.InvokeMethod("AddWorkItemsByIdAsync", model, new int[] { workItemId }, addByIdValue);
         }
     }
-
-#pragma warning restore S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
 }

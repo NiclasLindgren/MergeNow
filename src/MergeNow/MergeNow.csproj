@@ -54,6 +54,7 @@
     <Compile Include="Services\IMergeNowService.cs" />
     <Compile Include="Services\MergeNowService.cs" />
     <Compile Include="Mvvm\BaseViewModel.cs" />
+    <Compile Include="Utils\ReflectionUtils.cs" />
     <Compile Include="Utils\StringUtils.cs" />
     <Compile Include="ViewModels\MergeNowSectionViewModel.cs" />
     <Compile Include="Mvvm\Commands\AsyncCommand.cs" />
