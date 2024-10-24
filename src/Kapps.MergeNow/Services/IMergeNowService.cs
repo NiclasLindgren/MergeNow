@@ -1,12 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.TeamFoundation.VersionControl.Client;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MergeNow.Services
 {
     public interface IMergeNowService
     {
-        Task<IEnumerable<string>> GetTargetBranchesAsync(string changeset);
+        Task<Changeset> FindChangesetAsync(string changesetNumber);
 
-        Task MergeAsync(string changeset, string targetBranch);
+        Task<Changeset> BrowseChangesetAsync();
+
+        Task ViewChangesetDetailsAsync(Changeset changeset);
+
+        Task<IEnumerable<string>> GetTargetBranchesAsync(Changeset changeset);
+
+        Task MergeAsync(Changeset changeset, string targetBranch);
     }
 }

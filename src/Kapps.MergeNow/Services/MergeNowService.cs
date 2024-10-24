@@ -7,6 +7,7 @@ using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.TeamFoundation.VersionControl.Common;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TeamFoundation;
+using Microsoft.VisualStudio.TeamFoundation.VersionControl;
 using Microsoft.VisualStudio.Threading;
 using System;
 using System.Collections.Generic;
@@ -27,25 +28,48 @@ namespace MergeNow.Services
             RenewVersionControlConnectection();
         }
 
-        public async Task<IEnumerable<string>> GetTargetBranchesAsync(string changeset)
+        public async Task<Changeset> FindChangesetAsync(string changesetNumber)
         {
-            if (!int.TryParse(changeset, out int changesetNumber))
+            if (!int.TryParse(changesetNumber, out int changesetNo))
             {
                 throw new ArgumentException("Please provide a valid changeset number.");
             }
 
             var versionControlServer = await GetVersionControlAsync();
+            var changeset = versionControlServer.GetChangeset(changesetNo);
+            return changeset;
+        }
 
-            Changeset tfsChangeset = versionControlServer.GetChangeset(changesetNumber);
+        public async Task<Changeset> BrowseChangesetAsync()
+        {
+            var versionControlExt = await GetVersionControlExtAsync();
+            var changeset = versionControlExt.FindChangeset();
+            return changeset;
+        }
+
+        public async Task ViewChangesetDetailsAsync(Changeset changeset)
+        {
             if (changeset == null)
             {
-                throw new InvalidOperationException($"Changeset '{changeset}' does not exist.");
+                throw new ArgumentException("Please provide a valid changeset.");
             }
 
-            var targetBranches = new List<string>();
+            var versionControlExt = await GetVersionControlExtAsync();
+            versionControlExt.ViewChangesetDetails(changeset.ChangesetId);
+        }
 
-            var branchOwnerships = versionControlServer.QueryBranchObjectOwnership(new[] { tfsChangeset.ChangesetId });
+        public async Task<IEnumerable<string>> GetTargetBranchesAsync(Changeset changeset)
+        {
+            if (changeset == null)
+            {
+                throw new ArgumentException("Please provide a valid changeset.");
+            }
+
+            var versionControlServer = await GetVersionControlAsync();
+            var branchOwnerships = versionControlServer.QueryBranchObjectOwnership(new[] { changeset.ChangesetId });
             var sourceBranches = branchOwnerships.Select(bo => bo.RootItem.Item).ToList();
+
+            var targetBranches = new List<string>();
 
             foreach (var sourceBranch in sourceBranches)
             {
@@ -60,11 +84,11 @@ namespace MergeNow.Services
             return targetBranches;
         }
 
-        public async Task MergeAsync(string changeset, string targetBranch)
+        public async Task MergeAsync(Changeset changeset, string targetBranch)
         {
-            if (!int.TryParse(changeset, out int changesetNumber))
+            if (changeset == null)
             {
-                throw new ArgumentException("Please provide a valid changeset number.");
+                throw new ArgumentException("Please provide a valid changeset.");
             }
 
             if (string.IsNullOrWhiteSpace(targetBranch))
@@ -73,29 +97,22 @@ namespace MergeNow.Services
             }
 
             var versionControlServer = await GetVersionControlAsync();
-
-            Changeset tfsChangeset = versionControlServer.GetChangeset(changesetNumber);
-            if (changeset == null)
-            {
-                throw new InvalidOperationException($"Changeset '{changeset}' does not exist.");
-            }
-
-            BranchObjectOwnership[] branchOwnerships = versionControlServer.QueryBranchObjectOwnership(new[] { changesetNumber });
+            var branchOwnerships = versionControlServer.QueryBranchObjectOwnership(new[] { changeset.ChangesetId });
             var sourceBranches = branchOwnerships.Select(bo => bo.RootItem.Item).ToList();
 
             var pendingChangesPage = await GetPendingChangesPageAsync();
             Workspace workspace = GetCurrentWorkspace(pendingChangesPage);
-            ChangesetVersionSpec changesetVersionSpec = new ChangesetVersionSpec(changeset);
+            ChangesetVersionSpec changesetVersionSpec = new ChangesetVersionSpec(changeset.ChangesetId);
 
             foreach (var sourceBranch in sourceBranches)
             {
                 workspace.Merge(sourceBranch, targetBranch, changesetVersionSpec, changesetVersionSpec, LockLevel.None, RecursionType.Full, MergeOptionsEx.None);
             }
 
-            var mergeComment = GetMergeComment(sourceBranches, targetBranch, tfsChangeset);
+            var mergeComment = GetMergeComment(sourceBranches, targetBranch, changeset);
             SetMergeComment(mergeComment, pendingChangesPage);
 
-            foreach (var workItem in tfsChangeset.WorkItems)
+            foreach (var workItem in changeset.WorkItems)
             {
                 AssociateWorkItem(workItem.Id, pendingChangesPage);
             }
@@ -123,10 +140,7 @@ namespace MergeNow.Services
 
         private async Task<VersionControlServer> ConnectToVersionControlAsync()
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_asyncPackage.DisposalToken);
-            var dte = (DTE)await _asyncPackage.GetServiceAsync(typeof(DTE));
-
-            TeamFoundationServerExt foundationServerExt = dte.GetObject("Microsoft.VisualStudio.TeamFoundation.TeamFoundationServerExt") as TeamFoundationServerExt;
+            var foundationServerExt = await GetTfsObjectAsync<TeamFoundationServerExt>("Microsoft.VisualStudio.TeamFoundation.TeamFoundationServerExt");
 
             if (string.IsNullOrWhiteSpace(foundationServerExt?.ActiveProjectContext?.DomainUri))
             {
@@ -139,6 +153,21 @@ namespace MergeNow.Services
 
             var versionControlServer = projectCollection.GetService<VersionControlServer>();
             return versionControlServer;
+        }
+
+        private async Task<T> GetTfsObjectAsync<T>(string name) where T : class
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_asyncPackage.DisposalToken);
+            var dte = (DTE)await _asyncPackage.GetServiceAsync(typeof(DTE));
+
+            T tfsObject = dte.GetObject(name) as T;
+            return tfsObject;
+        }
+
+        private async Task<VersionControlExt> GetVersionControlExtAsync()
+        {
+            var versionControlExt = await GetTfsObjectAsync<VersionControlExt>("Microsoft.VisualStudio.TeamFoundation.VersionControl.VersionControlExt");
+            return versionControlExt ?? throw new InvalidOperationException("VersionControlExt not available.");
         }
 
         private async Task<ITeamExplorer> GetTeamExplorerAsync()
