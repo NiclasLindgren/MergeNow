@@ -56,15 +56,15 @@
                 Command="{Binding FindCommand}"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}"/>
 
-        <TextBlock Grid.Row="2" Grid.Column="1" Margin="5,5,0,0" Style="{StaticResource VsTextBlockStyle}">
+        <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="5,5,0,0" Style="{StaticResource VsTextBlockStyle}">
             <Hyperlink Command="{Binding OpenChangesetCommand}" Style="{StaticResource VsHyperlinkStyle}">
-                <TextBlock Text="{Binding ChangesetName}" />
+                <TextBlock Text="{Binding ChangesetName}"  TextWrapping="Wrap"/>
             </Hyperlink>
         </TextBlock>
 
         <TextBlock Text="Merge To" Margin="0,20,0,0" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0"
                 Style="{StaticResource VsTextBlockStyle}"/>
-        <ComboBox Margin="5,20,1,0" Height="22" Grid.Row="3" Grid.Column="1"
+        <ComboBox Margin="5,20,1,0" Height="22" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
                 ItemsSource="{Binding TargetBranches}" SelectedItem="{Binding SelectedTargetBranch}"
                 IsEnabled="{Binding AnyTargetBranches}"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ComboBoxStyleKey}}"/>
