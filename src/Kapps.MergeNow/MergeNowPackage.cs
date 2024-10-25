@@ -1,4 +1,5 @@
 ﻿using MergeNow.Services;
+using MergeNow.Settings;
 using MergeNow.ViewModels;
 using MergeNow.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace MergeNow
 {
+    [ProvideOptionPage(typeof(MergeNowSettings), "Merge Now", "General", 0, 0, true)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideAutoLoad(UIContextGuids80.NoSolution, PackageAutoLoadFlags.BackgroundLoad)]
     [Guid(PackageGuidString)]
@@ -31,7 +33,12 @@ namespace MergeNow
 
         private void ConfigureServices(IServiceCollection services)
         {
-            services.AddTransient<IMergeNowService>(_ => new MergeNowService(this));
+            services.AddSingleton<IMergeNowSettings>(_ => (MergeNowSettings)GetDialogPage(typeof(MergeNowSettings)));
+            services.AddTransient<IMergeNowService>(sp =>
+            {
+                var settings = sp.GetService<IMergeNowSettings>();
+                return new MergeNowService(this, settings);
+            });
             services.AddTransient<MergeNowSectionViewModel>();
             services.AddTransient(sp => new MergeNowSectionControl
             {

@@ -1,4 +1,5 @@
 ﻿using EnvDTE;
+using MergeNow.Settings;
 using MergeNow.Utils;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.Controls;
@@ -20,10 +21,12 @@ namespace MergeNow.Services
     internal class MergeNowService : IMergeNowService
     {
         private readonly AsyncPackage _asyncPackage;
+        private readonly IMergeNowSettings _settings;
         private AsyncLazy<VersionControlServer> _versionControlConnectionTask;
 
-        public MergeNowService(AsyncPackage asyncPackage)
+        public MergeNowService(AsyncPackage asyncPackage, IMergeNowSettings settings)
         {
+            _settings = settings;
             _asyncPackage = asyncPackage ?? throw new ArgumentNullException(nameof(asyncPackage));
             RenewVersionControlConnectection();
         }
@@ -133,7 +136,7 @@ namespace MergeNow.Services
                 AssociateWorkItem(workItem.Id, pendingChangesPage);
             }
 
-            if (workspace.QueryConflicts(new string[] { targetBranch}, true).Any())
+            if (workspace.QueryConflicts(new string[] { targetBranch }, true).Any())
             {
                 await OpenResolveConfiltsPageAsync();
             }
@@ -257,9 +260,20 @@ namespace MergeNow.Services
             return builder.ToString();
         }
 
-        private static void SetMergeComment(string comment, ITeamExplorerPage pendingChangesPage)
+        private void SetMergeComment(string comment, ITeamExplorerPage pendingChangesPage)
         {
             var model = GetPendingChangesPageModel(pendingChangesPage);
+
+            if (_settings.AppendComment)
+            {
+                var existingComment = ReflectionUtils.GetProperty("CheckinComment", model).ToString();
+
+                if (!string.IsNullOrWhiteSpace(existingComment))
+                {
+                    comment = $"{existingComment}, {comment}";
+                }
+            }
+
             ReflectionUtils.SetProperty("CheckinComment", model, comment);
         }
 
