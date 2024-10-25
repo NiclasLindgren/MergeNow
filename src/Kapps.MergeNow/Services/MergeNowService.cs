@@ -104,9 +104,25 @@ namespace MergeNow.Services
             Workspace workspace = GetCurrentWorkspace(pendingChangesPage);
             ChangesetVersionSpec changesetVersionSpec = new ChangesetVersionSpec(changeset.ChangesetId);
 
-            foreach (var sourceBranch in sourceBranches)
+            GetStatus mergeStatus = null;
+
+            for (int i = 0; i < sourceBranches.Count; i++)
             {
-                workspace.Merge(sourceBranch, targetBranch, changesetVersionSpec, changesetVersionSpec, LockLevel.None, RecursionType.Full, MergeOptionsEx.None);
+                var status = workspace.Merge(sourceBranches[i], targetBranch, changesetVersionSpec, changesetVersionSpec, LockLevel.None, RecursionType.Full, MergeOptionsEx.None);
+
+                if (i == 0)
+                {
+                    mergeStatus = status;
+                }
+                else
+                {
+                    mergeStatus.Combine(status);
+                }
+            }
+
+            if (mergeStatus == null || mergeStatus.NumFiles == 0)
+            {
+                throw new Exception("There are no files to merge.");
             }
 
             var mergeComment = GetMergeComment(sourceBranches, targetBranch, changeset);
@@ -115,6 +131,11 @@ namespace MergeNow.Services
             foreach (var workItem in changeset.WorkItems)
             {
                 AssociateWorkItem(workItem.Id, pendingChangesPage);
+            }
+
+            if (workspace.QueryConflicts(new string[] { targetBranch}, true).Any())
+            {
+                await OpenResolveConfiltsPageAsync();
             }
 
             pendingChangesPage.Refresh();
@@ -164,10 +185,23 @@ namespace MergeNow.Services
             return tfsObject;
         }
 
+        private async Task ExecuteCommandAsync(string commandName, string commandArgs = "")
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_asyncPackage.DisposalToken);
+            var dte = (DTE)await _asyncPackage.GetServiceAsync(typeof(DTE));
+
+            dte.ExecuteCommand(commandName, commandArgs);
+        }
+
         private async Task<VersionControlExt> GetVersionControlExtAsync()
         {
             var versionControlExt = await GetTfsObjectAsync<VersionControlExt>("Microsoft.VisualStudio.TeamFoundation.VersionControl.VersionControlExt");
             return versionControlExt ?? throw new InvalidOperationException("VersionControlExt not available.");
+        }
+
+        private Task OpenResolveConfiltsPageAsync()
+        {
+            return ExecuteCommandAsync("TeamFoundationContextMenus.PendingChangesPageMoreLink.TfsContextPendingChangesResolveConflicts");
         }
 
         private async Task<ITeamExplorer> GetTeamExplorerAsync()
