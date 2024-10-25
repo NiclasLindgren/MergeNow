@@ -22,23 +22,20 @@ namespace MergeNow
 
         private static IServiceProvider ServiceProvider { get; set; }
 
-        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        protected override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
             ServiceProvider = serviceCollection.BuildServiceProvider();
+
+            return base.InitializeAsync(cancellationToken, progress);
         }
 
         private void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<AsyncPackage>(_ => this);
             services.AddSingleton<IMergeNowSettings>(_ => (MergeNowSettings)GetDialogPage(typeof(MergeNowSettings)));
-            services.AddTransient<IMergeNowService>(sp =>
-            {
-                var settings = sp.GetService<IMergeNowSettings>();
-                return new MergeNowService(this, settings);
-            });
+            services.AddTransient<IMergeNowService, MergeNowService>();
             services.AddTransient<MergeNowSectionViewModel>();
             services.AddTransient(sp => new MergeNowSectionControl
             {

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Reflection;
 
+#pragma warning disable S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
+
 namespace MergeNow.Core.Utils
 {
-
     public static class ReflectionUtils
     {
         public static T GetProperty<T>(string propertyName, object parentObject)
@@ -78,3 +79,4 @@ namespace MergeNow.Core.Utils
         }
     }
 }
+#pragma warning restore S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields

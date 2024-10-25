@@ -12,9 +12,6 @@ namespace MergeNow
         public const int MergeNowSectionSortOrder = 100;
 
         private readonly MergeNowSectionControl _sectionContent;
-        private bool _isVisible = true;
-        private bool _isExpanded = true;
-        private bool _isBusy = false;
 
         public MergeNowSection()
         {
@@ -27,6 +24,7 @@ namespace MergeNow
 
         public object SectionContent => _sectionContent;
 
+        private bool _isVisible = true;
         public bool IsVisible
         {
             get => _isVisible;
@@ -37,6 +35,7 @@ namespace MergeNow
             }
         }
 
+        private bool _isExpanded = true;
         public bool IsExpanded
         {
             get => _isExpanded;
@@ -47,6 +46,7 @@ namespace MergeNow
             }
         }
 
+        private bool _isBusy = false;
         public bool IsBusy
         {
             get => _isBusy;
