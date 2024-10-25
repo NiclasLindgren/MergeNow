@@ -1,10 +1,10 @@
-﻿using MergeNow.Mvvm.Commands;
+﻿using MergeNow.Core.Mvvm.Commands;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace MergeNow.Mvvm
+namespace MergeNow.Core.Mvvm
 {
     public abstract class BaseViewModel : INotifyPropertyChanged
     {

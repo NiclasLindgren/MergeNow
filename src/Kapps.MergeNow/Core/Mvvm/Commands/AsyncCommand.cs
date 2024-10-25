@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace MergeNow.Mvvm.Commands
+namespace MergeNow.Core.Mvvm.Commands
 {
     public class AsyncCommand : BaseCommand, IAsyncCommand
     {

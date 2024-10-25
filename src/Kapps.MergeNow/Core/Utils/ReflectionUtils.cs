@@ -1,10 +1,8 @@
-﻿using EnvDTE;
-using System;
+﻿using System;
 using System.Reflection;
 
-namespace MergeNow.Utils
+namespace MergeNow.Core.Utils
 {
-#pragma warning disable S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
 
     public static class ReflectionUtils
     {
@@ -79,6 +77,4 @@ namespace MergeNow.Utils
             return methodInfo;
         }
     }
-
-#pragma warning restore S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
 }

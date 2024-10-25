@@ -1,5 +1,5 @@
-﻿using MergeNow.Mvvm;
-using MergeNow.Mvvm.Commands;
+﻿using MergeNow.Core.Mvvm;
+using MergeNow.Core.Mvvm.Commands;
 using MergeNow.Services;
 using Microsoft.TeamFoundation.VersionControl.Client;
 using System;

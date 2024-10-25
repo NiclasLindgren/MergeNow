@@ -1,4 +1,4 @@
-﻿namespace MergeNow.Utils
+﻿namespace MergeNow.Core.Utils
 {
     public static class StringUtils
     {

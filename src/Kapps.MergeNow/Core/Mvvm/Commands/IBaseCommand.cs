@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace MergeNow.Mvvm.Commands
+namespace MergeNow.Core.Mvvm.Commands
 {
     public interface IBaseCommand: ICommand
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MergeNow.Mvvm.Commands
+namespace MergeNow.Core.Mvvm.Commands
 {
     public abstract class BaseCommand
     {

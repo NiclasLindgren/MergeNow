@@ -1,6 +1,6 @@
 ﻿using EnvDTE;
 using MergeNow.Settings;
-using MergeNow.Utils;
+using MergeNow.Core.Utils;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Framework.Common;

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace MergeNow.Mvvm.Commands
+namespace MergeNow.Core.Mvvm.Commands
 {
     public interface IAsyncCommand : IBaseCommand
     {
