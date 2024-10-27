@@ -22,12 +22,15 @@ namespace MergeNow.Services
     {
         private readonly AsyncPackage _asyncPackage;
         private readonly IMergeNowSettings _settings;
+        private readonly IMessageService _messageService;
         private AsyncLazy<VersionControlServer> _versionControlConnectionTask;
 
-        public MergeNowService(AsyncPackage asyncPackage, IMergeNowSettings settings)
+        public MergeNowService(AsyncPackage asyncPackage, IMergeNowSettings settings, IMessageService messageService)
         {
-            _settings = settings;
             _asyncPackage = asyncPackage ?? throw new ArgumentNullException(nameof(asyncPackage));
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+
             RenewVersionControlConnectection();
         }
 
@@ -125,7 +128,8 @@ namespace MergeNow.Services
 
             if (mergeStatus == null || mergeStatus.NumFiles == 0)
             {
-                throw new Exception("There are no files to merge.");
+                _messageService.ShowMessage("There are no files to merge.");
+                return;
             }
 
             var mergeComment = GetMergeComment(sourceBranches, targetBranch, changeset);

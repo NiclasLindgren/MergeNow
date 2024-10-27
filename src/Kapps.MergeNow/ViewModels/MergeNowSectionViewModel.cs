@@ -6,28 +6,29 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 
 namespace MergeNow.ViewModels
 {
     public class MergeNowSectionViewModel : BaseViewModel
     {
         private readonly IMergeNowService _mergeNowService;
+        private readonly IMessageService _messageService;
 
-        public MergeNowSectionViewModel(IMergeNowService mergeNowService)
+        public MergeNowSectionViewModel(IMergeNowService mergeNowService, IMessageService messageService)
         {
             _mergeNowService = mergeNowService;
+            _messageService = messageService;
 
-            FindCommand = new AsyncCommand(ShowError, FindChangesetAsync, CanFindChangeset);
+            FindCommand = new AsyncCommand(_messageService.ShowError, FindChangesetAsync, CanFindChangeset);
             LinkToViewModel(FindCommand);
 
-            BrowseCommand = new AsyncCommand(ShowError, BrowseChangesetAsync);
+            BrowseCommand = new AsyncCommand(_messageService.ShowError, BrowseChangesetAsync);
             LinkToViewModel(BrowseCommand);
 
-            MergeCommand = new AsyncCommand(ShowError, MergeChangesetAsync, CanMergeChangeset);
+            MergeCommand = new AsyncCommand(_messageService.ShowError, MergeChangesetAsync, CanMergeChangeset);
             LinkToViewModel(MergeCommand);
 
-            OpenChangesetCommand = new AsyncCommand(ShowError, OpenChangesetAsync, CanOpenChangeset);
+            OpenChangesetCommand = new AsyncCommand(_messageService.ShowError, OpenChangesetAsync, CanOpenChangeset);
             LinkToViewModel(OpenChangesetCommand);
 
             TargetBranches = new ObservableCollection<string>();
@@ -36,7 +37,7 @@ namespace MergeNow.ViewModels
             ChangesetNumber = string.Empty;
         }
 
-        private Changeset SelectedChangeset { get;set; }
+        private Changeset SelectedChangeset { get; set; }
 
         public AsyncCommand FindCommand { get; }
         public AsyncCommand BrowseCommand { get; }
@@ -78,7 +79,8 @@ namespace MergeNow.ViewModels
 
             if (changeset == null)
             {
-                throw new InvalidOperationException($"Changeset '{ChangesetNumber}' does not exist.");
+                _messageService.ShowWarning($"Changeset '{ChangesetNumber}' does not exist.");
+                return;
             }
 
             await ApplyChangesetAsync(changeset);
@@ -88,7 +90,7 @@ namespace MergeNow.ViewModels
         {
             var changeset = await _mergeNowService.BrowseChangesetAsync();
 
-            // Browse was cancelled
+            // Browse was canceled
             if (changeset == null)
             {
                 return;
@@ -141,16 +143,6 @@ namespace MergeNow.ViewModels
         private bool CanOpenChangeset()
         {
             return !string.IsNullOrWhiteSpace(ChangesetName);
-        }
-
-        private static void ShowError(Exception exception)
-        {
-            if (exception == null)
-            {
-                return;
-            }
-
-            MessageBox.Show(exception.Message, "Merge Now", MessageBoxButton.OK, MessageBoxImage.Exclamation);
         }
     }
 }

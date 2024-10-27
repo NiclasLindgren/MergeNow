@@ -35,6 +35,7 @@ namespace MergeNow
         {
             services.AddSingleton<AsyncPackage>(_ => this);
             services.AddSingleton<IMergeNowSettings>(_ => (MergeNowSettings)GetDialogPage(typeof(MergeNowSettings)));
+            services.AddSingleton<IMessageService, MessageService>();
             services.AddTransient<IMergeNowService, MergeNowService>();
             services.AddTransient<MergeNowSectionViewModel>();
             services.AddTransient(sp => new MergeNowSectionControl
