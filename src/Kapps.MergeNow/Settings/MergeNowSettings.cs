@@ -11,13 +11,13 @@ namespace MergeNow.Settings
     {
         private const string CollectionPath = "MergeNow";
 
-        private const string DefaultCommentFormat = "Merge {SourceBranchesShort}->{TargetBranchShort}, c{ChangesetNumber}, {ChangesetComment}";
+        private const string DefaultCommentFormat = "Merge {MergeFromTo}, c{ChangesetNumber}, {ChangesetComment}";
 
         private readonly ShellSettingsManager _settingsManager;
 
         [Category("General")]
         [DisplayName("Comment Format")]
-        [Description("Specify a merge comment format. Available special tags: {SourceBranches}, {SourceBranchesShort}, {TargetBranch}, {TargetBranchShort}, {ChangesetNumber}, {ChangesetComment}, {ExistingPendingChangesComment}")]
+        [Description("Specify a merge comment format. Available special tags: {MergeFromTo}, {ChangesetNumber}, {ChangesetComment}, {ChangesetOwner}")]
         public string CommentFormat { get; set; }
 
         public MergeNowSettings()

@@ -1,5 +1,6 @@
 ﻿using EnvDTE;
 using MergeNow.Core.Utils;
+using MergeNow.Model;
 using MergeNow.Settings;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.Controls;
@@ -13,6 +14,7 @@ using Microsoft.VisualStudio.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MergeNow.Services
@@ -90,7 +92,7 @@ namespace MergeNow.Services
             return targetBranches.Distinct(StringComparer.OrdinalIgnoreCase);
         }
 
-        public async Task MergeAsync(Changeset changeset, string targetBranch)
+        public async Task MergeAsync(Changeset changeset, string targetBranch, MergeHistory mergeHistory)
         {
             if (changeset == null)
             {
@@ -100,6 +102,11 @@ namespace MergeNow.Services
             if (string.IsNullOrWhiteSpace(targetBranch))
             {
                 throw new ArgumentException("Please provide a valid target branch.");
+            }
+
+            if (mergeHistory == null)
+            {
+                throw new ArgumentException("Please provide a merge history.");
             }
 
             var pendingChangesPage = await GetPendingChangesPageAsync();
@@ -155,7 +162,7 @@ namespace MergeNow.Services
                 }
             }
 
-            if (mergeStatus == null || mergeStatus.NumFiles == 0)
+            if (mergeStatus == null || mergeStatus.NoActionNeeded)
             {
                 _messageService.ShowMessage("There are no files to merge.");
                 return;
@@ -167,9 +174,9 @@ namespace MergeNow.Services
                 _messageService.ShowMessage("TODO: Failed to merged.");
             }
 
-            var existingComment = GetPendingChangeComment(pendingChangesPage);
-            var mergeComment = GetMergeComment(mergeBranches, targetBranch, existingComment, changeset);
-            SetPendingChangeComment(mergeComment, pendingChangesPage);
+            mergeHistory.Add(mergeBranches, targetBranch);
+            var mergeComment = GetMergeComment(mergeHistory, changeset);
+            SetComment(mergeComment, pendingChangesPage);
 
             foreach (var workItem in changeset.WorkItems)
             {
@@ -303,44 +310,60 @@ namespace MergeNow.Services
             return workspace;
         }
 
-        private string GetMergeComment(List<string> sourceBranches, string targetBranch, string existingComment, Changeset changeset)
+        private string GetMergeComment(MergeHistory mergeHistory, Changeset changeset)
         {
-            var sourceBranchesShort = new List<string>();
-            var targetBranchShort = string.Empty;
+            var mergeFromTo = new StringBuilder();
 
-            for (int i = 0; i < sourceBranches.Count; i++)
+            int index = 0;
+            foreach (var mergeHistoryItem in mergeHistory.Items)
             {
-                string sourceBranch = sourceBranches[i];
+                string sourceBranch = mergeHistoryItem.Key;
+                List<string> targetBranches = mergeHistoryItem.Value;
 
-                var commonPrefix = StringUtils.FindCommonPrefix(sourceBranch, targetBranch, StringComparison.OrdinalIgnoreCase);
-                commonPrefix = StringUtils.TakeTillLastChar(commonPrefix, '/');
+                var sourceBranchShort = string.Empty;
+                var targetBranchesShort = new List<string>();
 
-                var currentSourceBranchShort = sourceBranch.Substring(commonPrefix.Length);
-                var currentTargetBranchShort = targetBranch.Substring(commonPrefix.Length);
-
-                sourceBranchesShort.Add(currentSourceBranchShort);
-
-                if (i == 0)
+                for (int i = 0; i < targetBranches.Count; i++)
                 {
-                    targetBranchShort = currentTargetBranchShort;
+                    string targetBranch = targetBranches[i];
+                    var commonPrefix = StringUtils.FindCommonPrefix(sourceBranch, targetBranch, StringComparison.OrdinalIgnoreCase);
+                    commonPrefix = StringUtils.TakeTillLastChar(commonPrefix, '/');
+
+                    var currentSourceBranchShort = sourceBranch.Substring(commonPrefix.Length);
+                    var currentTargetBranchShort = targetBranch.Substring(commonPrefix.Length);
+
+                    targetBranchesShort.Add(currentTargetBranchShort);
+
+                    if (i == 0)
+                    {
+                        sourceBranchShort = currentSourceBranchShort;
+                    }
+                    else
+                    {
+                        sourceBranchShort = StringUtils.PickShortest(sourceBranchShort, currentSourceBranchShort);
+                    }
                 }
-                else
+
+                if (index > 0)
                 {
-                    targetBranchShort = StringUtils.PickShortest(targetBranchShort, currentTargetBranchShort);
+                    mergeFromTo.Append("; ");
                 }
+
+                mergeFromTo.Append(sourceBranchShort);
+                mergeFromTo.Append("->");
+                mergeFromTo.Append(string.Join(", ", targetBranchesShort));
+
+                index++;
             }
 
             string mergeComment = _settings.CommentFormat;
 
             var replacements = new Dictionary<string, string>
             {
-                { "SourceBranches", string.Join(", ", sourceBranches) },
-                { "SourceBranchesShort", string.Join(", ", sourceBranchesShort) },
-                { "TargetBranch", targetBranch },
-                { "TargetBranchShort", targetBranchShort },
+                { "MergeFromTo", mergeFromTo.ToString() },
                 { "ChangesetNumber", changeset.ChangesetId.ToString() },
                 { "ChangesetComment", changeset.Comment },
-                { "ExistingPendingChangesComment", existingComment }
+                { "ChangesetOwner", changeset.OwnerDisplayName }
             };
 
             foreach (var placeholder in replacements)
@@ -351,19 +374,7 @@ namespace MergeNow.Services
             return mergeComment;
         }
 
-        private string GetPendingChangeComment(ITeamExplorerPage pendingChangesPage)
-        {
-            var model = GetPendingChangesPageModel(pendingChangesPage);
-            if (model == null)
-            {
-                return string.Empty;
-            }
-
-            var existingComment = ReflectionUtils.GetProperty("CheckinComment", model)?.ToString();
-            return existingComment;
-        }
-
-        private void SetPendingChangeComment(string comment, ITeamExplorerPage pendingChangesPage)
+        private static void SetComment(string comment, ITeamExplorerPage pendingChangesPage)
         {
             var model = GetPendingChangesPageModel(pendingChangesPage);
             if (model == null)

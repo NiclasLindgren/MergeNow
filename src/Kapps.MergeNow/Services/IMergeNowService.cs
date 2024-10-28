@@ -1,4 +1,5 @@
-﻿using Microsoft.TeamFoundation.VersionControl.Client;
+﻿using MergeNow.Model;
+using Microsoft.TeamFoundation.VersionControl.Client;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -16,6 +17,6 @@ namespace MergeNow.Services
 
         Task<IEnumerable<string>> GetTargetBranchesAsync(Changeset changeset);
 
-        Task MergeAsync(Changeset changeset, string targetBranch);
+        Task MergeAsync(Changeset changeset, string targetBranch, MergeHistory mergeHistory);
     }
 }

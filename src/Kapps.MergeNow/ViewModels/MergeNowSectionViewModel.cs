@@ -1,11 +1,14 @@
 ﻿using MergeNow.Core.Mvvm;
 using MergeNow.Core.Mvvm.Commands;
 using MergeNow.Core.Utils;
+using MergeNow.Model;
 using MergeNow.Services;
 using Microsoft.TeamFoundation.VersionControl.Client;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 
 namespace MergeNow.ViewModels
 {
@@ -15,6 +18,7 @@ namespace MergeNow.ViewModels
         private readonly IMessageService _messageService;
 
         private Changeset SelectedChangeset { get; set; }
+        private MergeHistory MergeHistory { get; }
 
         public IBaseCommand BrowseCommand { get; }
         public IBaseCommand FindCommand { get; }
@@ -76,6 +80,8 @@ namespace MergeNow.ViewModels
 
             TargetBranches = new ObservableCollection<string>();
             LinkToViewModel(TargetBranches);
+
+            MergeHistory = new MergeHistory();
         }
 
         public void Reconnect()
@@ -116,7 +122,7 @@ namespace MergeNow.ViewModels
 
         private Task MergeChangesetAsync()
         {
-            return _mergeNowService.MergeAsync(SelectedChangeset, SelectedTargetBranch);
+            return _mergeNowService.MergeAsync(SelectedChangeset, SelectedTargetBranch, MergeHistory);
         }
 
         private bool CanFindChangeset()
@@ -160,6 +166,8 @@ namespace MergeNow.ViewModels
 
             SelectedTargetBranch = string.Empty;
             TargetBranches.Clear();
+
+            MergeHistory.Clear();
         }
     }
 }
