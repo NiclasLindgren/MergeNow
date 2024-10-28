@@ -14,6 +14,49 @@ namespace MergeNow.ViewModels
         private readonly IMergeNowService _mergeNowService;
         private readonly IMessageService _messageService;
 
+        private Changeset SelectedChangeset { get; set; }
+
+        public IBaseCommand BrowseCommand { get; }
+        public IBaseCommand FindCommand { get; }
+        public IBaseCommand OpenChangesetCommand { get; }
+        public IBaseCommand MergeCommand { get; }
+
+        public ObservableCollection<string> TargetBranches { get; }
+
+        private bool _isOnline = true;
+        public bool IsOnline
+        {
+            get => _isOnline;
+            set => SetValue(ref _isOnline, value);
+        }
+
+        private string _changesetNumber;
+        public string ChangesetNumber
+        {
+            get => _changesetNumber;
+            set
+            {
+                SetValue(ref _changesetNumber, value);
+                ResetView();
+            }
+        }
+
+        private string _changesetName;
+        public string ChangesetName
+        {
+            get => _changesetName;
+            set => SetValue(ref _changesetName, value);
+        }
+
+        private string _selectedTargetBranch;
+        public string SelectedTargetBranch
+        {
+            get => _selectedTargetBranch;
+            set => SetValue(ref _selectedTargetBranch, value);
+        }
+
+        public bool AnyTargetBranches => TargetBranches.Any();
+
         public MergeNowSectionViewModel(IMergeNowService mergeNowService, IMessageService messageService)
         {
             _mergeNowService = mergeNowService;
@@ -36,42 +79,6 @@ namespace MergeNow.ViewModels
 
             ChangesetNumber = string.Empty;
         }
-
-        private Changeset SelectedChangeset { get; set; }
-
-        public AsyncCommand FindCommand { get; }
-        public AsyncCommand BrowseCommand { get; }
-        public AsyncCommand MergeCommand { get; }
-        public AsyncCommand OpenChangesetCommand { get; }
-
-        private string _changesetNumber;
-        public string ChangesetNumber
-        {
-            get => _changesetNumber;
-            set
-            {
-                SetValue(ref _changesetNumber, value);
-                ResetView();
-            }
-        }
-
-        private string _changesetName;
-        public string ChangesetName
-        {
-            get => _changesetName;
-            set => SetValue(ref _changesetName, value);
-        }
-
-        public ObservableCollection<string> TargetBranches { get; }
-
-        private string _selectedTargetBranch;
-        public string SelectedTargetBranch
-        {
-            get => _selectedTargetBranch;
-            set => SetValue(ref _selectedTargetBranch, value);
-        }
-
-        public bool AnyTargetBranches => TargetBranches.Any();
 
         private async Task FindChangesetAsync()
         {
@@ -143,6 +150,16 @@ namespace MergeNow.ViewModels
         private bool CanOpenChangeset()
         {
             return !string.IsNullOrWhiteSpace(ChangesetName);
+        }
+
+        public void Initialize()
+        {
+
+        }
+
+        public void Refresh()
+        {
+
         }
     }
 }

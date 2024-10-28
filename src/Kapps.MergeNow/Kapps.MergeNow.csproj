@@ -45,6 +45,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Logger.cs" />
     <Compile Include="MergeNowSection.cs" />
     <Compile Include="Core\Mvvm\Commands\BaseCommand.cs" />
     <Compile Include="Core\Mvvm\Commands\IAsyncCommand.cs" />

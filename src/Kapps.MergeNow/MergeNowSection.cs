@@ -1,4 +1,5 @@
-﻿using MergeNow.Views;
+﻿using MergeNow.ViewModels;
+using MergeNow.Views;
 using Microsoft.TeamFoundation.Controls;
 using System;
 using System.ComponentModel;
@@ -11,18 +12,28 @@ namespace MergeNow
         public const string MergeNowSectionId = "0210c7cf-7c17-494b-a30b-836432a1bcfd";
         public const int MergeNowSectionSortOrder = 100;
 
-        private readonly MergeNowSectionControl _sectionContent;
+        private readonly MergeNowSectionViewModel _mainViewModel;
+        private readonly MergeNowSectionControl _mainView;
 
         public MergeNowSection()
         {
-            _sectionContent = MergeNowPackage.Resolve<MergeNowSectionControl>();
+            try
+            {
+                _mainViewModel = MergeNowPackage.Resolve<MergeNowSectionViewModel>();
+                _mainView = new MergeNowSectionControl { DataContext = _mainViewModel };
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to initialize Merge Now.", ex);
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         public string Title => "Merge Now";
 
-        public object SectionContent => _sectionContent;
+        public object SectionContent => _mainView
+            ?? (object)"Failed to initialize Merge Now. Open Visual Studio Activity Log for more details.";
 
         private bool _isVisible = true;
         public bool IsVisible
@@ -46,7 +57,7 @@ namespace MergeNow
             }
         }
 
-        private bool _isBusy = false;
+        private bool _isBusy;
         public bool IsBusy
         {
             get => _isBusy;
@@ -59,6 +70,7 @@ namespace MergeNow
 
         public void Initialize(object sender, SectionInitializeEventArgs e)
         {
+            _mainViewModel?.Initialize();
         }
 
         public void Loaded(object sender, SectionLoadedEventArgs e)
@@ -71,6 +83,7 @@ namespace MergeNow
 
         public void Refresh()
         {
+            _mainViewModel?.Refresh();
         }
 
         public void Cancel()

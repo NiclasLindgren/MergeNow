@@ -1,7 +1,6 @@
 ﻿using MergeNow.Services;
 using MergeNow.Settings;
 using MergeNow.ViewModels;
-using MergeNow.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -24,9 +23,16 @@ namespace MergeNow
 
         protected override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            var serviceCollection = new ServiceCollection();
-            ConfigureServices(serviceCollection);
-            ServiceProvider = serviceCollection.BuildServiceProvider();
+            try
+            {
+                var serviceCollection = new ServiceCollection();
+                ConfigureServices(serviceCollection);
+                ServiceProvider = serviceCollection.BuildServiceProvider();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to initialize Merge Now service provider.", ex);
+            }
 
             return base.InitializeAsync(cancellationToken, progress);
         }
@@ -38,12 +44,11 @@ namespace MergeNow
             services.AddSingleton<IMessageService, MessageService>();
             services.AddTransient<IMergeNowService, MergeNowService>();
             services.AddTransient<MergeNowSectionViewModel>();
-            services.AddTransient(sp => new MergeNowSectionControl
-            {
-                DataContext = sp.GetService<MergeNowSectionViewModel>()
-            });
         }
 
-        public static TControl Resolve<TControl>() => ServiceProvider.GetService<TControl>();
+        public static TControl Resolve<TControl>() where TControl : class
+        {
+            return ServiceProvider?.GetService<TControl>();
+        }
     }
 }
