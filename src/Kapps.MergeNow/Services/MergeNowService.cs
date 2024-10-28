@@ -1,6 +1,6 @@
 ﻿using EnvDTE;
-using MergeNow.Settings;
 using MergeNow.Core.Utils;
+using MergeNow.Settings;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Framework.Common;
@@ -13,7 +13,6 @@ using Microsoft.VisualStudio.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MergeNow.Services
@@ -84,15 +83,11 @@ namespace MergeNow.Services
 
             foreach (var sourceBranch in sourceBranches)
             {
-                var branches = versionControlServer?.QueryMergeRelationships(sourceBranch)
-                    .Where(i => !i.IsDeleted)
-                    .Select(i => i.Item)
-                    .Reverse() ?? Enumerable.Empty<string>();
-
+                var branches = GetMergeBranches(versionControlServer, sourceBranch);
                 targetBranches.AddRange(branches);
             }
 
-            return targetBranches;
+            return targetBranches.Distinct(StringComparer.OrdinalIgnoreCase);
         }
 
         public async Task MergeAsync(Changeset changeset, string targetBranch)
@@ -125,13 +120,30 @@ namespace MergeNow.Services
                 return;
             }
 
+            var mergeBranches = new List<string>();
+
+            foreach (var sourceBranch in sourceBranches)
+            {
+                var branches = GetMergeBranches(versionControlServer, sourceBranch);
+                if (branches.Any(b => string.Equals(b, targetBranch, StringComparison.OrdinalIgnoreCase)))
+                {
+                    mergeBranches.Add(sourceBranch);
+                }
+            }
+
+            if (!mergeBranches.Any())
+            {
+                _messageService.ShowWarning("There are no target branches to merge.");
+                return;
+            }
+
             ChangesetVersionSpec changesetVersionSpec = new ChangesetVersionSpec(changeset.ChangesetId);
 
             GetStatus mergeStatus = null;
 
-            for (int i = 0; i < sourceBranches.Count; i++)
+            for (int i = 0; i < mergeBranches.Count; i++)
             {
-                var status = workspace.Merge(sourceBranches[i], targetBranch, changesetVersionSpec, changesetVersionSpec, LockLevel.None, RecursionType.Full, MergeOptionsEx.None);
+                var status = workspace.Merge(mergeBranches[i], targetBranch, changesetVersionSpec, changesetVersionSpec, LockLevel.None, RecursionType.Full, MergeOptionsEx.None);
 
                 if (i == 0)
                 {
@@ -149,8 +161,15 @@ namespace MergeNow.Services
                 return;
             }
 
-            var mergeComment = GetMergeComment(sourceBranches, targetBranch, changeset);
-            SetMergeComment(mergeComment, pendingChangesPage);
+            var failures = mergeStatus.GetFailures();
+            if (failures.Any())
+            {
+                _messageService.ShowMessage("TODO: Failed to merged.");
+            }
+
+            var existingComment = GetPendingChangeComment(pendingChangesPage);
+            var mergeComment = GetMergeComment(mergeBranches, targetBranch, existingComment, changeset);
+            SetPendingChangeComment(mergeComment, pendingChangesPage);
 
             foreach (var workItem in changeset.WorkItems)
             {
@@ -173,9 +192,21 @@ namespace MergeNow.Services
             }
 
             var branchOwnerships = versionControlServer.QueryBranchObjectOwnership(new[] { changeset.ChangesetId });
-            var sourceBranches = branchOwnerships?.Select(bo => bo.RootItem.Item).ToList();
+            var sourceBranches = branchOwnerships?
+                .Where(bo => !bo.RootItem.IsDeleted)
+                .Select(bo => bo.RootItem.Item).ToList();
 
             return sourceBranches ?? new List<string>();
+        }
+
+        private static IEnumerable<string> GetMergeBranches(VersionControlServer versionControlServer, string sourceBranch)
+        {
+            var mergeBranches = versionControlServer?.QueryMergeRelationships(sourceBranch)
+                    .Where(i => !i.IsDeleted)
+                    .Select(i => i.Item)
+                    .Reverse() ?? Enumerable.Empty<string>();
+
+            return mergeBranches;
         }
 
         private async Task<VersionControlServer> GetVersionControlAsync()
@@ -272,48 +303,72 @@ namespace MergeNow.Services
             return workspace;
         }
 
-        private static string GetMergeComment(List<string> sourceBranches, string targetBranch, Changeset changeset)
+        private string GetMergeComment(List<string> sourceBranches, string targetBranch, string existingComment, Changeset changeset)
         {
-            var builder = new StringBuilder();
-            builder.Append("Merge ");
+            var sourceBranchesShort = new List<string>();
+            var targetBranchShort = string.Empty;
 
             for (int i = 0; i < sourceBranches.Count; i++)
             {
-                if (i > 0)
-                {
-                    builder.Append(", ");
-                }
-
                 string sourceBranch = sourceBranches[i];
-                var commonPrefix = StringUtils.FindCommonPrefix(sourceBranch, targetBranch);
-                var sourceBranchShort = sourceBranch.Substring(commonPrefix.Length);
-                var targetBranchShort = targetBranch.Substring(commonPrefix.Length);
 
-                builder.Append($"{sourceBranchShort}->{targetBranchShort}");
+                var commonPrefix = StringUtils.FindCommonPrefix(sourceBranch, targetBranch, StringComparison.OrdinalIgnoreCase);
+                commonPrefix = StringUtils.TakeTillLastChar(commonPrefix, '/');
+
+                var currentSourceBranchShort = sourceBranch.Substring(commonPrefix.Length);
+                var currentTargetBranchShort = targetBranch.Substring(commonPrefix.Length);
+
+                sourceBranchesShort.Add(currentSourceBranchShort);
+
+                if (i == 0)
+                {
+                    targetBranchShort = currentTargetBranchShort;
+                }
+                else
+                {
+                    targetBranchShort = StringUtils.PickShortest(targetBranchShort, currentTargetBranchShort);
+                }
             }
 
-            builder.Append($", c{changeset.ChangesetId}");
-            builder.Append($", {changeset.Comment}");
+            string mergeComment = _settings.CommentFormat;
 
-            return builder.ToString();
+            var replacements = new Dictionary<string, string>
+            {
+                { "SourceBranches", string.Join(", ", sourceBranches) },
+                { "SourceBranchesShort", string.Join(", ", sourceBranchesShort) },
+                { "TargetBranch", targetBranch },
+                { "TargetBranchShort", targetBranchShort },
+                { "ChangesetNumber", changeset.ChangesetId.ToString() },
+                { "ChangesetComment", changeset.Comment },
+                { "ExistingPendingChangesComment", existingComment }
+            };
+
+            foreach (var placeholder in replacements)
+            {
+                mergeComment = mergeComment.Replace($"{{{placeholder.Key}}}", placeholder.Value);
+            }
+
+            return mergeComment;
         }
 
-        private void SetMergeComment(string comment, ITeamExplorerPage pendingChangesPage)
+        private string GetPendingChangeComment(ITeamExplorerPage pendingChangesPage)
+        {
+            var model = GetPendingChangesPageModel(pendingChangesPage);
+            if (model == null)
+            {
+                return string.Empty;
+            }
+
+            var existingComment = ReflectionUtils.GetProperty("CheckinComment", model)?.ToString();
+            return existingComment;
+        }
+
+        private void SetPendingChangeComment(string comment, ITeamExplorerPage pendingChangesPage)
         {
             var model = GetPendingChangesPageModel(pendingChangesPage);
             if (model == null)
             {
                 return;
-            }
-
-            if (_settings.AppendComment)
-            {
-                var existingComment = ReflectionUtils.GetProperty("CheckinComment", model).ToString();
-
-                if (!string.IsNullOrWhiteSpace(existingComment))
-                {
-                    comment = $"{existingComment}, {comment}";
-                }
             }
 
             ReflectionUtils.SetProperty("CheckinComment", model, comment);

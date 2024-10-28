@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.Settings;
+﻿using Microsoft.TeamFoundation.VersionControl.Client;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 using System;
@@ -10,12 +11,14 @@ namespace MergeNow.Settings
     {
         private const string CollectionPath = "MergeNow";
 
+        private const string DefaultCommentFormat = "Merge {SourceBranchesShort}->{TargetBranchShort}, c{ChangesetNumber}, {ChangesetComment}";
+
         private readonly ShellSettingsManager _settingsManager;
 
         [Category("General")]
-        [DisplayName("Append Comment")]
-        [Description("Append merge comment to existing comment on Pending Changes view. Otherwise replace the comment.")]
-        public bool AppendComment { get; set; }
+        [DisplayName("Comment Format")]
+        [Description("Specify a merge comment format. Available special tags: {SourceBranches}, {SourceBranchesShort}, {TargetBranch}, {TargetBranchShort}, {ChangesetNumber}, {ChangesetComment}, {ExistingPendingChangesComment}")]
+        public string CommentFormat { get; set; }
 
         public MergeNowSettings()
         {
@@ -41,7 +44,7 @@ namespace MergeNow.Settings
         {
             try
             {
-                AppendComment = GetBoolSetting(nameof(AppendComment), true);
+                CommentFormat = GetSetting(nameof(CommentFormat), DefaultCommentFormat);
             }
             catch (Exception ex)
             {
@@ -53,7 +56,7 @@ namespace MergeNow.Settings
         {
             try
             {
-                SaveSetting(nameof(AppendComment), AppendComment);
+                SaveSetting(nameof(CommentFormat), CommentFormat);
             }
             catch (Exception ex)
             {
@@ -93,13 +96,6 @@ namespace MergeNow.Settings
             }
 
             return defaultValue;
-        }
-
-        private bool GetBoolSetting(string propertyName, bool defaultValue = false)
-        {
-            var setting = GetSetting(propertyName);
-
-            return !string.IsNullOrWhiteSpace(setting) ? setting.ToUpper() == "TRUE" : defaultValue;
         }
     }
 }

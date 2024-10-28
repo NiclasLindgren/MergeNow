@@ -1,10 +1,11 @@
 ﻿namespace MergeNow.Settings
 {
-    /// <summary>
-    /// Append merge comment to existing comment on Pending Changes view. Otherwise replace the comment.
-    /// </summary>
     public interface IMergeNowSettings
     {
-        bool AppendComment { get; }
+        /// <summary>
+        /// Specify a merge comment format.
+        /// e.g. Merge {SourceBranchesShort}->{TargetBranchShort}, c{ChangesetNumber}, {ChangesetComment}
+        /// </summary>
+        string CommentFormat { get; }
     }
 }
