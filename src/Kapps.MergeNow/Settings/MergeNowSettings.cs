@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
+using System;
 using System.ComponentModel;
 
 namespace MergeNow.Settings
@@ -18,20 +19,55 @@ namespace MergeNow.Settings
 
         public MergeNowSettings()
         {
-            _settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
+            try
+            {
+                _settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Cannot initialize Merge Now settings store.", ex);
+            }
 
-            AppendComment = GetBoolSetting(nameof(AppendComment), true);
+            ReloadAll();
         }
 
         protected override void OnApply(PageApplyEventArgs e)
         {
-            SaveSetting(nameof(AppendComment), AppendComment);
-
+            SaveAll();
             base.OnApply(e);
+        }
+
+        private void ReloadAll()
+        {
+            try
+            {
+                AppendComment = GetBoolSetting(nameof(AppendComment), true);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Cannot load Merge Now settings.", ex);
+            }
+        }
+
+        private void SaveAll()
+        {
+            try
+            {
+                SaveSetting(nameof(AppendComment), AppendComment);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Cannot save Merge Now settings.", ex);
+            }
         }
 
         private void SaveSetting<T>(string propertyName, T value)
         {
+            if (_settingsManager == null)
+            {
+                return;
+            }
+
             var writableStore = _settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
             if (!writableStore.CollectionExists(CollectionPath))
@@ -44,6 +80,11 @@ namespace MergeNow.Settings
 
         private string GetSetting(string propertyName, string defaultValue = "")
         {
+            if (_settingsManager == null)
+            {
+                return defaultValue;
+            }
+
             var store = _settingsManager.GetReadOnlySettingsStore(SettingsScope.UserSettings);
 
             if (store.PropertyExists(CollectionPath, propertyName))
