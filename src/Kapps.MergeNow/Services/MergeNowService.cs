@@ -34,6 +34,12 @@ namespace MergeNow.Services
             RenewVersionControlConnectection();
         }
 
+        public async Task<bool> IsOnlineAsync()
+        {
+            var versionControlServer = await GetVersionControlAsync();
+            return versionControlServer != null;
+        }
+
         public async Task<Changeset> FindChangesetAsync(string changesetNumber)
         {
             if (!int.TryParse(changesetNumber, out int changesetNo))

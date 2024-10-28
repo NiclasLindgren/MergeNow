@@ -1,8 +1,8 @@
 ﻿using MergeNow.Core.Mvvm;
 using MergeNow.Core.Mvvm.Commands;
+using MergeNow.Core.Utils;
 using MergeNow.Services;
 using Microsoft.TeamFoundation.VersionControl.Client;
-using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,7 +23,7 @@ namespace MergeNow.ViewModels
 
         public ObservableCollection<string> TargetBranches { get; }
 
-        private bool _isOnline = true;
+        private bool _isOnline;
         public bool IsOnline
         {
             get => _isOnline;
@@ -76,8 +76,11 @@ namespace MergeNow.ViewModels
 
             TargetBranches = new ObservableCollection<string>();
             LinkToViewModel(TargetBranches);
+        }
 
-            ChangesetNumber = string.Empty;
+        public void Reconnect()
+        {
+            IsOnline = _mergeNowService.IsOnlineAsync().FireAsyncCatchErrors(_messageService.ShowError);
         }
 
         private async Task FindChangesetAsync()
@@ -150,16 +153,6 @@ namespace MergeNow.ViewModels
         private bool CanOpenChangeset()
         {
             return !string.IsNullOrWhiteSpace(ChangesetName);
-        }
-
-        public void Initialize()
-        {
-
-        }
-
-        public void Refresh()
-        {
-
         }
     }
 }

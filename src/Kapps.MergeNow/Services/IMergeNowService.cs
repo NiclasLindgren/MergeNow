@@ -6,6 +6,8 @@ namespace MergeNow.Services
 {
     public interface IMergeNowService
     {
+        Task<bool> IsOnlineAsync();
+
         Task<Changeset> FindChangesetAsync(string changesetNumber);
 
         Task<Changeset> BrowseChangesetAsync();

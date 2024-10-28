@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MergeNow.Core.Utils;
+using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -47,19 +48,7 @@ namespace MergeNow.Core.Mvvm.Commands
 
         void ICommand.Execute(object parameter)
         {
-            FireAsyncCatchErrors(ExecuteAsync(), errorHandler);
-        }
-
-        private static void FireAsyncCatchErrors(Task task, Action<Exception> errorHandler)
-        {
-            try
-            {
-                task.ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-            catch (Exception ex)
-            {
-                errorHandler?.Invoke(ex);
-            }
+            ExecuteAsync().FireAsyncCatchErrors(errorHandler);
         }
     }
 }

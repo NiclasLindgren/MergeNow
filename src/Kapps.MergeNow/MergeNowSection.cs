@@ -19,7 +19,9 @@ namespace MergeNow
         {
             try
             {
-                _mainViewModel = MergeNowPackage.Resolve<MergeNowSectionViewModel>();
+                _mainViewModel = MergeNowPackage.Resolve<MergeNowSectionViewModel>()
+                    ?? throw new InvalidOperationException("Failed to resolve Merge Now view model.");
+
                 _mainView = new MergeNowSectionControl { DataContext = _mainViewModel };
             }
             catch (Exception ex)
@@ -70,7 +72,7 @@ namespace MergeNow
 
         public void Initialize(object sender, SectionInitializeEventArgs e)
         {
-            _mainViewModel?.Initialize();
+            _mainViewModel?.Reconnect();
         }
 
         public void Loaded(object sender, SectionLoadedEventArgs e)
@@ -83,7 +85,7 @@ namespace MergeNow
 
         public void Refresh()
         {
-            _mainViewModel?.Refresh();
+            _mainViewModel?.Reconnect();
         }
 
         public void Cancel()
