@@ -109,8 +109,42 @@ namespace MergeNow.ViewModels
             await ApplyChangesetAsync(changeset);
         }
 
+        private Task OpenChangesetAsync()
+        {
+            return _mergeNowService.ViewChangesetDetailsAsync(SelectedChangeset);
+        }
+
+        private Task MergeChangesetAsync()
+        {
+            return _mergeNowService.MergeAsync(SelectedChangeset, SelectedTargetBranch);
+        }
+
+        private bool CanFindChangeset()
+        {
+            return !string.IsNullOrWhiteSpace(ChangesetNumber) &&
+                int.TryParse(ChangesetNumber, out var number) &&
+                number > 0;
+        }
+
+        private bool CanMergeChangeset()
+        {
+            return !string.IsNullOrWhiteSpace(SelectedTargetBranch);
+        }
+
+        private bool CanOpenChangeset()
+        {
+            return !string.IsNullOrWhiteSpace(ChangesetName);
+        }
+
         private async Task ApplyChangesetAsync(Changeset changeset)
         {
+            ResetView();
+
+            if (changeset == null)
+            {
+                return;
+            }
+
             ChangesetNumber = changeset.ChangesetId.ToString();
             ChangesetName = changeset.Comment;
             SelectedChangeset = changeset;
@@ -126,33 +160,6 @@ namespace MergeNow.ViewModels
 
             SelectedTargetBranch = string.Empty;
             TargetBranches.Clear();
-        }
-
-        private bool CanFindChangeset()
-        {
-            return !string.IsNullOrWhiteSpace(ChangesetNumber) &&
-                int.TryParse(ChangesetNumber, out var number) &&
-                number > 0;
-        }
-
-        private Task MergeChangesetAsync()
-        {
-            return _mergeNowService.MergeAsync(SelectedChangeset, SelectedTargetBranch);
-        }
-
-        private bool CanMergeChangeset()
-        {
-            return !string.IsNullOrWhiteSpace(SelectedTargetBranch);
-        }
-
-        private Task OpenChangesetAsync()
-        {
-            return _mergeNowService.ViewChangesetDetailsAsync(SelectedChangeset);
-        }
-
-        private bool CanOpenChangeset()
-        {
-            return !string.IsNullOrWhiteSpace(ChangesetName);
         }
     }
 }

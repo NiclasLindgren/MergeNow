@@ -48,14 +48,14 @@ namespace MergeNow.Services
             }
 
             var versionControlServer = await GetVersionControlAsync();
-            var changeset = versionControlServer.GetChangeset(changesetNo);
+            var changeset = versionControlServer?.GetChangeset(changesetNo);
             return changeset;
         }
 
         public async Task<Changeset> BrowseChangesetAsync()
         {
             var versionControlExt = await GetVersionControlExtAsync();
-            var changeset = versionControlExt.FindChangeset();
+            var changeset = versionControlExt?.FindChangeset();
             return changeset;
         }
 
@@ -67,7 +67,7 @@ namespace MergeNow.Services
             }
 
             var versionControlExt = await GetVersionControlExtAsync();
-            versionControlExt.ViewChangesetDetails(changeset.ChangesetId);
+            versionControlExt?.ViewChangesetDetails(changeset.ChangesetId);
         }
 
         public async Task<IEnumerable<string>> GetTargetBranchesAsync(Changeset changeset)
@@ -78,17 +78,16 @@ namespace MergeNow.Services
             }
 
             var versionControlServer = await GetVersionControlAsync();
-            var branchOwnerships = versionControlServer.QueryBranchObjectOwnership(new[] { changeset.ChangesetId });
-            var sourceBranches = branchOwnerships.Select(bo => bo.RootItem.Item).ToList();
+            var sourceBranches = GetSourceBranches(versionControlServer, changeset);
 
             var targetBranches = new List<string>();
 
             foreach (var sourceBranch in sourceBranches)
             {
-                var branches = versionControlServer.QueryMergeRelationships(sourceBranch)
+                var branches = versionControlServer?.QueryMergeRelationships(sourceBranch)
                     .Where(i => !i.IsDeleted)
                     .Select(i => i.Item)
-                    .Reverse();
+                    .Reverse() ?? Enumerable.Empty<string>();
 
                 targetBranches.AddRange(branches);
             }
@@ -108,12 +107,24 @@ namespace MergeNow.Services
                 throw new ArgumentException("Please provide a valid target branch.");
             }
 
-            var versionControlServer = await GetVersionControlAsync();
-            var branchOwnerships = versionControlServer.QueryBranchObjectOwnership(new[] { changeset.ChangesetId });
-            var sourceBranches = branchOwnerships.Select(bo => bo.RootItem.Item).ToList();
-
             var pendingChangesPage = await GetPendingChangesPageAsync();
             Workspace workspace = GetCurrentWorkspace(pendingChangesPage);
+
+            if (workspace == null)
+            {
+                _messageService.ShowWarning("No TFS workspace found.");
+                return;
+            }
+
+            var versionControlServer = await GetVersionControlAsync();
+            var sourceBranches = GetSourceBranches(versionControlServer, changeset);
+
+            if (sourceBranches == null || !sourceBranches.Any())
+            {
+                _messageService.ShowWarning("There are no source branches to merge.");
+                return;
+            }
+
             ChangesetVersionSpec changesetVersionSpec = new ChangesetVersionSpec(changeset.ChangesetId);
 
             GetStatus mergeStatus = null;
@@ -154,6 +165,19 @@ namespace MergeNow.Services
             pendingChangesPage.Refresh();
         }
 
+        private static List<string> GetSourceBranches(VersionControlServer versionControlServer, Changeset changeset)
+        {
+            if (versionControlServer == null || changeset == null)
+            {
+                return new List<string>();
+            }
+
+            var branchOwnerships = versionControlServer.QueryBranchObjectOwnership(new[] { changeset.ChangesetId });
+            var sourceBranches = branchOwnerships?.Select(bo => bo.RootItem.Item).ToList();
+
+            return sourceBranches ?? new List<string>();
+        }
+
         private async Task<VersionControlServer> GetVersionControlAsync()
         {
             try
@@ -163,7 +187,7 @@ namespace MergeNow.Services
             catch
             {
                 RenewVersionControlConnectection();
-                throw;
+                return await _versionControlConnectionTask.GetValueAsync();
             }
         }
 
@@ -194,7 +218,7 @@ namespace MergeNow.Services
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_asyncPackage.DisposalToken);
             var dte = (DTE)await _asyncPackage.GetServiceAsync(typeof(DTE));
 
-            T tfsObject = dte.GetObject(name) as T;
+            T tfsObject = dte?.GetObject(name) as T;
             return tfsObject;
         }
 
@@ -203,7 +227,7 @@ namespace MergeNow.Services
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_asyncPackage.DisposalToken);
             var dte = (DTE)await _asyncPackage.GetServiceAsync(typeof(DTE));
 
-            dte.ExecuteCommand(commandName, commandArgs);
+            dte?.ExecuteCommand(commandName, commandArgs);
         }
 
         private async Task<VersionControlExt> GetVersionControlExtAsync()
@@ -226,7 +250,7 @@ namespace MergeNow.Services
         private async Task<ITeamExplorerPage> GetPendingChangesPageAsync()
         {
             var teamExplorer = await GetTeamExplorerAsync();
-            ITeamExplorerPage pendingChangesPage = teamExplorer.NavigateToPage(new Guid(TeamExplorerPageIds.PendingChanges), null);
+            ITeamExplorerPage pendingChangesPage = teamExplorer?.NavigateToPage(new Guid(TeamExplorerPageIds.PendingChanges), null);
             return pendingChangesPage;
         }
 
@@ -239,8 +263,12 @@ namespace MergeNow.Services
         private static Workspace GetCurrentWorkspace(ITeamExplorerPage pendingChangesPage)
         {
             var model = GetPendingChangesPageModel(pendingChangesPage);
-            var workspace = ReflectionUtils.GetProperty<Workspace>("Workspace", model);
+            if (model == null)
+            {
+                return null;
+            }
 
+            var workspace = ReflectionUtils.GetProperty<Workspace>("Workspace", model);
             return workspace;
         }
 
@@ -273,6 +301,10 @@ namespace MergeNow.Services
         private void SetMergeComment(string comment, ITeamExplorerPage pendingChangesPage)
         {
             var model = GetPendingChangesPageModel(pendingChangesPage);
+            if (model == null)
+            {
+                return;
+            }
 
             if (_settings.AppendComment)
             {
@@ -290,9 +322,22 @@ namespace MergeNow.Services
         private static void AssociateWorkItem(int workItemId, ITeamExplorerPage pendingChangesPage)
         {
             var model = GetPendingChangesPageModel(pendingChangesPage);
+            if (model == null)
+            {
+                return;
+            }
 
             var enumType = ReflectionUtils.GetNestedType("WorkItemsAddSource", model.GetType().BaseType);
+            if (enumType == null)
+            {
+                return;
+            }
+
             var addByIdValue = Enum.Parse(enumType, "AddById");
+            if (addByIdValue == null)
+            {
+                return;
+            }
 
             ReflectionUtils.InvokeMethod("AddWorkItemsByIdAsync", model, new int[] { workItemId }, addByIdValue);
         }

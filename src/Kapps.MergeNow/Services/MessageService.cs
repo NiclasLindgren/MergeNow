@@ -5,15 +5,23 @@ namespace MergeNow.Services
 {
     public class MessageService : IMessageService
     {
-        public void ShowMessage(string message) => ShowInternal(message, MessageBoxImage.Information);
+        public void ShowMessage(string message) => Show(message, MessageBoxImage.Information);
 
-        public void ShowWarning(string message) => ShowInternal(message, MessageBoxImage.Warning);
+        public void ShowWarning(string message) => Show(message, MessageBoxImage.Warning);
 
-        public void ShowError(string message) => ShowInternal(message, MessageBoxImage.Error);
+        public void ShowError(string message)
+        {
+            Logger.Error(message);
+            Show(message, MessageBoxImage.Error);
+        }
 
-        public void ShowError(Exception exception) => ShowInternal(exception?.Message, MessageBoxImage.Error);
+        public void ShowError(Exception exception)
+        {
+            Logger.Error(exception);
+            Show(exception?.Message, MessageBoxImage.Error);
+        }
 
-        private static void ShowInternal(string message, MessageBoxImage messageBoxImage)
+        private static void Show(string message, MessageBoxImage messageBoxImage)
         {
             if (string.IsNullOrWhiteSpace(message))
             {

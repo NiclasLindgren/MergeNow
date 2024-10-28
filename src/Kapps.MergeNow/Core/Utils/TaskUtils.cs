@@ -7,6 +7,11 @@ namespace MergeNow.Core.Utils
     {
         public static void FireAsyncCatchErrors(this Task task, Action<Exception> errorHandler)
         {
+            if (task == null)
+            {
+                return;
+            }
+
             try
             {
                 task.ConfigureAwait(false).GetAwaiter().GetResult();
@@ -19,6 +24,11 @@ namespace MergeNow.Core.Utils
 
         public static T FireAsyncCatchErrors<T>(this Task<T> task, Action<Exception> errorHandler)
         {
+            if (task == null)
+            {
+                return default;
+            }
+
             try
             {
                 return task.ConfigureAwait(false).GetAwaiter().GetResult();
