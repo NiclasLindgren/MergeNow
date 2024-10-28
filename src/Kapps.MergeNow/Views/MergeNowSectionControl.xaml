@@ -4,10 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:MergeNow.Views"
+             xmlns:vms="clr-namespace:MergeNow.ViewModels"
              xmlns:shell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platform="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d" d:Background="White" d:DesignHeight="200" d:DesignWidth="400"
              IsEnabled="{Binding IsOnline}">
+
+    <d:UserControl.DataContext>
+        <vms:MergeNowSectionDesignViewModel/>
+    </d:UserControl.DataContext>
 
     <UserControl.Resources>
         <ResourceDictionary>

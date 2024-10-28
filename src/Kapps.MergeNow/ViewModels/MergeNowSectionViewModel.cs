@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MergeNow.ViewModels
 {
-    public class MergeNowSectionViewModel : BaseViewModel
+    public class MergeNowSectionViewModel : BaseViewModel, IMergeNowSectionViewModel
     {
         private readonly IMergeNowService _mergeNowService;
         private readonly IMessageService _messageService;

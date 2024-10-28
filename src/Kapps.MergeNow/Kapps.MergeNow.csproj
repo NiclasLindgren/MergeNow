@@ -45,6 +45,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Core\Mvvm\Commands\EmptyCommand.cs" />
     <Compile Include="Core\Utils\TaskUtils.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MergeNowSection.cs" />
@@ -64,6 +65,8 @@
     <Compile Include="Core\Mvvm\BaseViewModel.cs" />
     <Compile Include="Core\Utils\ReflectionUtils.cs" />
     <Compile Include="Core\Utils\StringUtils.cs" />
+    <Compile Include="ViewModels\IMergeNowSectionViewModel.cs" />
+    <Compile Include="ViewModels\MergeNowSectionDesignViewModel.cs" />
     <Compile Include="ViewModels\MergeNowSectionViewModel.cs" />
     <Compile Include="Core\Mvvm\Commands\AsyncCommand.cs" />
     <Compile Include="Views\MergeNowSectionControl.xaml.cs">
