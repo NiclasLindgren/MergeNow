@@ -162,16 +162,10 @@ namespace MergeNow.Services
                 }
             }
 
-            if (mergeStatus == null || mergeStatus.NoActionNeeded)
+            bool canMerge = ReportMergeStatus(mergeStatus);
+            if (!canMerge)
             {
-                _messageService.ShowMessage("There are no files to merge.");
                 return;
-            }
-
-            var failures = mergeStatus.GetFailures();
-            if (failures.Any())
-            {
-                _messageService.ShowMessage("TODO: Failed to merged.");
             }
 
             mergeHistory.Add(mergeBranches, targetBranch);
@@ -189,6 +183,87 @@ namespace MergeNow.Services
             }
 
             pendingChangesPage.Refresh();
+        }
+
+        private bool ReportMergeStatus(GetStatus mergeStatus)
+        {
+            if (mergeStatus == null)
+            {
+                return false;
+            }
+
+            var status = new StringBuilder();
+
+            if ( mergeStatus.NoActionNeeded)
+            {
+                status.AppendLine("Merge complete");
+                status.AppendLine();
+                status.AppendLine("There are no files left to merge");
+
+                _messageService.ShowMessage(status.ToString());
+                return false;
+            }
+
+            void AddStatusInfo()
+            {
+                status.AppendLine();
+
+                if (mergeStatus.NumFiles > 0)
+                {
+                    status.AppendLine($"Number of Files: {mergeStatus.NumFiles}");
+                }
+
+                if (mergeStatus.NumUpdated > 0)
+                {
+                    status.AppendLine($"Number of Updates: {mergeStatus.NumUpdated}");
+                }
+
+                if (mergeStatus.NumOperations > 0)
+                {
+                    status.AppendLine($"Number of Operations: {mergeStatus.NumOperations}");
+                }
+
+                if (mergeStatus.NumConflicts > 0)
+                {
+                    status.AppendLine($"Number of Conflicts: {mergeStatus.NumConflicts}");
+                }
+
+                if (mergeStatus.NumResolvedConflicts > 0)
+                {
+                    status.AppendLine($"Number of Resolved Conflicts: {mergeStatus.NumResolvedConflicts}");
+                }
+
+                if (mergeStatus.NumWarnings > 0)
+                {
+                    status.AppendLine($"Number of Warnings: {mergeStatus.NumWarnings}");
+                }
+
+                if (mergeStatus.NumFailures > 0)
+                {
+                    status.AppendLine($"Number of Failures: {mergeStatus.NumFailures}");
+                }
+
+                status.AppendLine();
+            }
+
+            var failures = mergeStatus.GetFailures();
+            if (failures.Any())
+            {
+                status.AppendLine("Merge completed with failures");
+                AddStatusInfo();
+                status.AppendLine("Open Team Explorer Output panel to see failure details");
+
+                _messageService.ShowWarning(status.ToString());
+            }
+            else
+            {
+                status.AppendLine("Merge complete");
+                AddStatusInfo();
+
+                _messageService.ShowMessage(status.ToString());
+            }
+
+            return true;
         }
 
         private static List<string> GetSourceBranches(VersionControlServer versionControlServer, Changeset changeset)
