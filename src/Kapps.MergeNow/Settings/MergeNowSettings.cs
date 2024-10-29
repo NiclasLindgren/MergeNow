@@ -12,13 +12,19 @@ namespace MergeNow.Settings
         private const string CollectionPath = "MergeNow";
 
         private const string DefaultCommentFormat = "Merge {MergeFromTo}, c{ChangesetNumber}, {ChangesetComment}";
+        private const string DefaultMergeDelimeter = "->";
 
         private readonly ShellSettingsManager _settingsManager;
 
         [Category("General")]
         [DisplayName("Comment Format")]
-        [Description("Specify a merge comment format. Available special tags: {MergeFromTo}, {ChangesetNumber}, {ChangesetComment}, {ChangesetOwner}")]
+        [Description("Specify a merge comment format. Available special tags: {MergeFromTo}, {ChangesetNumber}, {ChangesetComment}, {ChangesetOwner}.")]
         public string CommentFormat { get; set; }
+
+        [Category("General")]
+        [DisplayName("Merge Delimeter")]
+        [Description("Delimeter used for {MergeFromTo} special tag in 'Comment Format' setting.")]
+        public string MergeDelimeter { get; set; }
 
         public MergeNowSettings()
         {
@@ -45,6 +51,7 @@ namespace MergeNow.Settings
             try
             {
                 CommentFormat = GetSetting(nameof(CommentFormat), DefaultCommentFormat);
+                MergeDelimeter = GetSetting(nameof(MergeDelimeter), DefaultMergeDelimeter);
             }
             catch (Exception ex)
             {
@@ -57,6 +64,7 @@ namespace MergeNow.Settings
             try
             {
                 SaveSetting(nameof(CommentFormat), CommentFormat);
+                SaveSetting(nameof(MergeDelimeter), MergeDelimeter);
             }
             catch (Exception ex)
             {

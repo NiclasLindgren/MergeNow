@@ -314,6 +314,8 @@ namespace MergeNow.Services
         {
             var mergeFromTo = new StringBuilder();
 
+            var delimeter = _settings.MergeDelimeter;
+
             int index = 0;
             foreach (var mergeHistoryItem in mergeHistory.Items)
             {
@@ -350,7 +352,7 @@ namespace MergeNow.Services
                 }
 
                 mergeFromTo.Append(sourceBranchShort);
-                mergeFromTo.Append("->");
+                mergeFromTo.Append(delimeter);
                 mergeFromTo.Append(string.Join(", ", targetBranchesShort));
 
                 index++;
