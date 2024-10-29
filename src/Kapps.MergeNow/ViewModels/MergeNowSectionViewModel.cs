@@ -61,6 +61,13 @@ namespace MergeNow.ViewModels
 
         public bool AnyTargetBranches => TargetBranches.Any();
 
+        private bool _clearComment;
+        public bool ClearComment
+        {
+            get => _clearComment;
+            set => SetValue(ref _clearComment, value);
+        }
+
         public MergeNowSectionViewModel(IMergeNowService mergeNowService, IMessageService messageService)
         {
             _mergeNowService = mergeNowService;
@@ -80,6 +87,8 @@ namespace MergeNow.ViewModels
 
             TargetBranches = new ObservableCollection<string>();
             LinkToViewModel(TargetBranches);
+
+            ClearComment = true;
 
             MergeHistory = new MergeHistory();
         }
@@ -122,6 +131,11 @@ namespace MergeNow.ViewModels
 
         private Task MergeChangesetAsync()
         {
+            if (ClearComment)
+            {
+                MergeHistory.Clear();
+            }
+
             return _mergeNowService.MergeAsync(SelectedChangeset, SelectedTargetBranch, MergeHistory);
         }
 

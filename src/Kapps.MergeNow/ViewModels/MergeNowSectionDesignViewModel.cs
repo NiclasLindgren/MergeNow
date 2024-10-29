@@ -21,5 +21,6 @@ namespace MergeNow.ViewModels
         public string ChangesetName { get; set; } = "My changeset name";
         public string SelectedTargetBranch { get; set; } = "$/releases/r01";
         public bool AnyTargetBranches => true;
+        public bool ClearComment { get; set; } = true;
     }
 }

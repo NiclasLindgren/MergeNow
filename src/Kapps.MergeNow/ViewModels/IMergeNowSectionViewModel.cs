@@ -17,5 +17,6 @@ namespace MergeNow.ViewModels
         string ChangesetName { get; set; }
         string SelectedTargetBranch { get; set; }
         bool AnyTargetBranches { get; }
+        bool ClearComment { get; set; }
     }
 }

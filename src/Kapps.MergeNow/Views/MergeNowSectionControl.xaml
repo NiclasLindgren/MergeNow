@@ -77,8 +77,16 @@
                 IsEnabled="{Binding AnyTargetBranches}"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ComboBoxStyleKey}}"/>
 
-        <Button Content="Merge" Margin="5,5,0,0" HorizontalAlignment="Left" Width="120" Height="22" Grid.Row="4" Grid.Column="1"
+        <StackPanel Margin="5,5,5,0" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
+                    Orientation="Horizontal" Height="22">
+
+            <Button Content="Merge" Width="120"
                 Command="{Binding MergeCommand}"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}"/>
+
+            <CheckBox Margin="10,0,0,0" Content="Clear comment on merge" VerticalAlignment="Center"
+                      IsChecked="{Binding ClearComment}"
+                      Style="{DynamicResource {x:Static shell:VsResourceKeys.CheckBoxStyleKey}}"/>
+        </StackPanel>
     </Grid>
 </UserControl>
