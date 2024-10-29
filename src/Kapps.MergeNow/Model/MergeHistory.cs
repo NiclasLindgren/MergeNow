@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 
 namespace MergeNow.Model
 {
-    public class MergeHistory
+    public class MergeHistory: IEnumerable<KeyValuePair<string, List<string>>>
     {
-        public Dictionary<string, List<string>> Items { get; } = new Dictionary<string, List<string>>();
+        private Dictionary<string, List<string>> Items { get; } = new Dictionary<string, List<string>>();
 
         public void Add(IEnumerable<string> sourceBranches, string targetBranch)
         {
@@ -44,6 +45,16 @@ namespace MergeNow.Model
         public void Clear()
         {
             Items.Clear();
+        }
+
+        public IEnumerator<KeyValuePair<string, List<string>>> GetEnumerator()
+        {
+            return Items.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return Items.GetEnumerator();
         }
     }
 }

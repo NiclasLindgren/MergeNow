@@ -317,7 +317,7 @@ namespace MergeNow.Services
             var delimeter = _settings.MergeDelimeter;
 
             int index = 0;
-            foreach (var mergeHistoryItem in mergeHistory.Items)
+            foreach (var mergeHistoryItem in mergeHistory)
             {
                 string sourceBranch = mergeHistoryItem.Key;
                 List<string> targetBranches = mergeHistoryItem.Value;
@@ -358,8 +358,6 @@ namespace MergeNow.Services
                 index++;
             }
 
-            string mergeComment = _settings.CommentFormat;
-
             var replacements = new Dictionary<string, string>
             {
                 { "MergeFromTo", mergeFromTo.ToString() },
@@ -367,6 +365,8 @@ namespace MergeNow.Services
                 { "ChangesetComment", changeset.Comment },
                 { "ChangesetOwner", changeset.OwnerDisplayName }
             };
+
+            string mergeComment = _settings.CommentFormat;
 
             foreach (var placeholder in replacements)
             {
