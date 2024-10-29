@@ -7,6 +7,7 @@ using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Framework.Common;
 using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.TeamFoundation.VersionControl.Common;
+using Microsoft.TeamFoundation.VersionControl.Controls.Extensibility;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TeamFoundation;
 using Microsoft.VisualStudio.TeamFoundation.VersionControl;
@@ -127,6 +128,12 @@ namespace MergeNow.Services
                 return;
             }
 
+            bool isFirstMerge = !mergeHistory.Any();
+            if (isFirstMerge)
+            {
+                ClearAssociatedWorkItems(pendingChangesPage);
+            }
+
             var mergeBranches = new List<string>();
 
             foreach (var sourceBranch in sourceBranches)
@@ -194,7 +201,7 @@ namespace MergeNow.Services
 
             var status = new StringBuilder();
 
-            if ( mergeStatus.NoActionNeeded)
+            if (mergeStatus.NoActionNeeded)
             {
                 status.AppendLine("Merge complete");
                 status.AppendLine();
@@ -373,6 +380,24 @@ namespace MergeNow.Services
             return model;
         }
 
+        private static object GetPendingChangesPageViewModel(ITeamExplorerPage pendingChangesPage)
+        {
+            var viewModel = ReflectionUtils.GetProperty("ViewModel", pendingChangesPage);
+            return viewModel;
+        }
+
+        private static IPendingChangesExt GetPendingChangesExt(ITeamExplorerPage pendingChangesPage)
+        {
+            var viewModel = GetPendingChangesPageViewModel(pendingChangesPage);
+            if (viewModel == null)
+            {
+                return null;
+            }
+
+            var pendingChangesExt = ReflectionUtils.GetProperty<IPendingChangesExt>("PendingChangesExt", viewModel);
+            return pendingChangesExt;
+        }
+
         private static Workspace GetCurrentWorkspace(ITeamExplorerPage pendingChangesPage)
         {
             var model = GetPendingChangesPageModel(pendingChangesPage);
@@ -460,6 +485,29 @@ namespace MergeNow.Services
             }
 
             ReflectionUtils.SetProperty("CheckinComment", model, comment);
+        }
+
+        private static void ClearAssociatedWorkItems(ITeamExplorerPage pendingChangesPage)
+        {
+            var model = GetPendingChangesPageModel(pendingChangesPage);
+            if (model == null)
+            {
+                return;
+            }
+
+            var pendingCheckinManager = ReflectionUtils.GetProperty<object>("PendingCheckinManager", model);
+            if (pendingCheckinManager == null)
+            {
+                return;
+            }
+
+            var wiInfo = ReflectionUtils.GetProperty<IEnumerable<WorkItemCheckedInfo>>("CheckinWorkItems", pendingCheckinManager);
+            if (wiInfo == null || !wiInfo.Any())
+            {
+                return;
+            }
+
+            ReflectionUtils.InvokeMethod("RemoveCheckinWorkItems", pendingCheckinManager, wiInfo);
         }
 
         private static void AssociateWorkItem(int workItemId, ITeamExplorerPage pendingChangesPage)

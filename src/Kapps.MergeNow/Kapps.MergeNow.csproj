@@ -95,6 +95,9 @@
     <Reference Include="Microsoft.TeamFoundation.VersionControl.Common">
       <HintPath>..\..\libs\Microsoft.TeamFoundation.VersionControl.Common.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.TeamFoundation.VersionControl.Controls">
+      <HintPath>..\..\libs\Microsoft.TeamFoundation.VersionControl.Controls.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.TeamFoundation.WorkItemTracking.Client">
       <HintPath>..\..\libs\Microsoft.TeamFoundation.WorkItemTracking.Client.dll</HintPath>
     </Reference>

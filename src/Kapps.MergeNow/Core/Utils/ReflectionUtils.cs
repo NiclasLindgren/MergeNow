@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 
 #pragma warning disable S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
@@ -42,13 +43,29 @@ namespace MergeNow.Core.Utils
 
         public static void InvokeMethod(string methodName, object parentObject, params object[] methodArguments)
         {
-            var methodInfo = GetMethodInfo(methodName, parentObject);
+            Type[] parameterTypes = methodArguments?.Select(ma => ma.GetType()).ToArray();
+
+			var methodInfo = GetMethodInfo(methodName, parentObject, parameterTypes);
             if (methodInfo == null)
             {
                 return;
             }
 
             methodInfo.Invoke(parentObject, methodArguments);
+        }
+
+        public static T InvokeMethod<T>(string methodName, object parentObject, params object[] methodArguments)
+            where T : class
+        {
+            Type[] parameterTypes = methodArguments?.Select(ma => ma.GetType()).ToArray();
+
+            var methodInfo = GetMethodInfo(methodName, parentObject, parameterTypes);
+            if (methodInfo == null)
+            {
+                return default;
+            }
+
+            return methodInfo.Invoke(parentObject, methodArguments) as T;
         }
 
         public static Type GetNestedType(string typeName, Type parentType)
@@ -58,23 +75,34 @@ namespace MergeNow.Core.Utils
 
         private static PropertyInfo GetPropertyInfo(string propertyName, object parentObject)
         {
-            if (string.IsNullOrWhiteSpace(propertyName) || parentObject == null)
+            return GetPropertyInfo(propertyName, parentObject?.GetType());
+        }
+
+        private static PropertyInfo GetPropertyInfo(string propertyName, Type parentType)
+        {
+            if (string.IsNullOrWhiteSpace(propertyName) || parentType == null)
             {
                 return null;
             }
 
-            var propertyInfo = parentObject.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            var propertyInfo = parentType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+            if (propertyInfo == null)
+            {
+                return GetPropertyInfo(propertyName, parentType.BaseType);
+            }
+
             return propertyInfo;
         }
 
-        private static MethodInfo GetMethodInfo(string methodName, object parentObject)
+        private static MethodInfo GetMethodInfo(string methodName, object parentObject, Type[] parameterTypes)
         {
             if (string.IsNullOrWhiteSpace(methodName) || parentObject == null)
             {
                 return null;
             }
 
-            var methodInfo = parentObject.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            var methodInfo = parentObject.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, null, parameterTypes, null);
             return methodInfo;
         }
     }
