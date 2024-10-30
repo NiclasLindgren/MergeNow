@@ -107,7 +107,7 @@ namespace MergeNow.ViewModels
 
         public void Reconnect()
         {
-            IsSectionEnabled = _mergeNowService.IsOnlineAsync().FireAsyncCatchErrors(_messageService.ShowError);
+            IsSectionEnabled = _mergeNowService.IsOnlineAsync().ReturnAsyncCatchErrors(_messageService.ShowError);
         }
 
         private async Task FindChangesetAsync()
@@ -141,7 +141,7 @@ namespace MergeNow.ViewModels
             return _mergeNowService.ViewChangesetDetailsAsync(SelectedChangeset);
         }
 
-        private Task MergeChangesetAsync()
+        private async Task MergeChangesetAsync()
         {
             if (!CombinedMerge)
             {
@@ -153,7 +153,7 @@ namespace MergeNow.ViewModels
             try
             {
                 IsSectionEnabled = false;
-                return _mergeNowService.MergeAsync(SelectedChangeset, SelectedTargetBranch, MergeHistory);
+                await Task.Run(() => _mergeNowService.MergeAsync(SelectedChangeset, SelectedTargetBranch, MergeHistory));
             }
             finally
             {

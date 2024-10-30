@@ -136,12 +136,6 @@ namespace MergeNow.Services
                 return;
             }
 
-            bool isFirstMerge = !mergeHistory.Any();
-            if (isFirstMerge)
-            {
-                ClearAssociatedWorkItems(pendingChangesPage);
-            }
-
             var mergeBranches = new List<string>();
 
             foreach (var sourceBranch in sourceBranches)
@@ -183,8 +177,20 @@ namespace MergeNow.Services
                 return;
             }
 
+            bool isFirstMerge = !mergeHistory.Any();
+
             mergeHistory.Add(mergeBranches, targetBranch);
             var mergeComment = GetMergeComment(mergeHistory, changeset);
+
+            // below main thread only UI parts
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_asyncPackage.DisposalToken);
+
+            if (isFirstMerge)
+            {
+                ClearAssociatedWorkItems(pendingChangesPage);
+            }
+
             SetComment(mergeComment, pendingChangesPage);
 
             foreach (var workItem in changeset.WorkItems)
@@ -197,7 +203,7 @@ namespace MergeNow.Services
                 await OpenResolveConfiltsPageAsync();
             }
 
-            pendingChangesPage.Refresh();
+            pendingChangesPage?.Refresh();
         }
 
         public async Task ClearPendingChangesPageAsync()
