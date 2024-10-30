@@ -8,7 +8,7 @@
              xmlns:shell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platform="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d" d:Background="White" d:DesignHeight="250" d:DesignWidth="400"
-             IsEnabled="{Binding IsOnline}">
+             IsEnabled="{Binding IsSectionEnabled}">
 
     <d:UserControl.DataContext>
         <vms:MergeNowSectionDesignViewModel/>

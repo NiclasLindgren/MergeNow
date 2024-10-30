@@ -13,7 +13,7 @@ namespace MergeNow.ViewModels
         IBaseCommand ClearMergeNowCommand { get; }
         ObservableCollection<string> TargetBranches { get; }
 
-        bool IsOnline { get; set; }
+        bool IsSectionEnabled { get; set; }
         string ChangesetNumber { get; set; }
         string ChangesetName { get; set; }
         string SelectedTargetBranch { get; set; }

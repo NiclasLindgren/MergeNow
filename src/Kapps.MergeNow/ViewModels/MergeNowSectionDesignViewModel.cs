@@ -18,7 +18,7 @@ namespace MergeNow.ViewModels
             "$/releases/r02"
         };
 
-        public bool IsOnline { get; set; } = true;
+        public bool IsSectionEnabled { get; set; } = true;
         public string ChangesetNumber { get; set; } = "123456";
         public string ChangesetName { get; set; } = "My changeset name";
         public string SelectedTargetBranch { get; set; } = "$/releases/r01";

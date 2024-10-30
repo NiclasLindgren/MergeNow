@@ -29,7 +29,7 @@ namespace MergeNow.ViewModels
         public ObservableCollection<string> TargetBranches { get; }
 
         private bool _isOnline;
-        public bool IsOnline
+        public bool IsSectionEnabled
         {
             get => _isOnline;
             set => SetValue(ref _isOnline, value);
@@ -107,7 +107,7 @@ namespace MergeNow.ViewModels
 
         public void Reconnect()
         {
-            IsOnline = _mergeNowService.IsOnlineAsync().FireAsyncCatchErrors(_messageService.ShowError);
+            IsSectionEnabled = _mergeNowService.IsOnlineAsync().FireAsyncCatchErrors(_messageService.ShowError);
         }
 
         private async Task FindChangesetAsync()
@@ -148,7 +148,17 @@ namespace MergeNow.ViewModels
                 MergeHistory.Clear();
             }
 
-            return _mergeNowService.MergeAsync(SelectedChangeset, SelectedTargetBranch, MergeHistory);
+            var isSectionEnabled = IsSectionEnabled;
+
+            try
+            {
+                IsSectionEnabled = false;
+                return _mergeNowService.MergeAsync(SelectedChangeset, SelectedTargetBranch, MergeHistory);
+            }
+            finally
+            {
+                IsSectionEnabled = isSectionEnabled;
+            }
         }
 
         private Task ClearPageCommandAsync()
