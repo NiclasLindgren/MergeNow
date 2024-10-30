@@ -10,7 +10,7 @@ namespace MergeNow.ViewModels
         IBaseCommand OpenChangesetCommand { get; }
         IBaseCommand MergeCommand { get; }
         IBaseCommand ClearPageCommand { get; }
-
+        IBaseCommand ClearMergeNowCommand { get; }
         ObservableCollection<string> TargetBranches { get; }
 
         bool IsOnline { get; set; }

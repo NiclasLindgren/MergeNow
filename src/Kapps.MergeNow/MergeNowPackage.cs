@@ -42,8 +42,8 @@ namespace MergeNow
             services.AddSingleton<AsyncPackage>(_ => this);
             services.AddSingleton<IMergeNowSettings>(_ => (MergeNowSettings)GetDialogPage(typeof(MergeNowSettings)));
             services.AddSingleton<IMessageService, MessageService>();
-            services.AddTransient<IMergeNowService, MergeNowService>();
-            services.AddTransient<MergeNowSectionViewModel>();
+            services.AddSingleton<IMergeNowService, MergeNowService>();
+            services.AddSingleton<MergeNowSectionViewModel>();
         }
 
         public static TControl Resolve<TControl>() where TControl : class

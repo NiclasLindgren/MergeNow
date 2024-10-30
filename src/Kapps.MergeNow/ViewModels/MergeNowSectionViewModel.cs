@@ -4,6 +4,7 @@ using MergeNow.Core.Utils;
 using MergeNow.Model;
 using MergeNow.Services;
 using Microsoft.TeamFoundation.VersionControl.Client;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace MergeNow.ViewModels
         public IBaseCommand OpenChangesetCommand { get; }
         public IBaseCommand MergeCommand { get; }
         public IBaseCommand ClearPageCommand { get; }
+        public IBaseCommand ClearMergeNowCommand { get; }
 
         public ObservableCollection<string> TargetBranches { get; }
 
@@ -94,6 +96,9 @@ namespace MergeNow.ViewModels
             ClearPageCommand = new AsyncCommand(_messageService.ShowError, ClearPageCommandAsync);
             LinkToViewModel(ClearPageCommand);
 
+            ClearMergeNowCommand = new AsyncCommand(_messageService.ShowError, ClearMergeNowCommandAsync);
+            LinkToViewModel(ClearMergeNowCommand);
+
             TargetBranches = new ObservableCollection<string>();
             LinkToViewModel(TargetBranches);
 
@@ -149,6 +154,12 @@ namespace MergeNow.ViewModels
         private Task ClearPageCommandAsync()
         {
             return _mergeNowService.ClearPendingChangesPageAsync();
+        }
+
+        private Task ClearMergeNowCommandAsync()
+        {
+            ChangesetNumber = null;
+            return Task.CompletedTask;
         }
 
         private bool CanFindChangeset()
