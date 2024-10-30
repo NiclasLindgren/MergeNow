@@ -7,7 +7,7 @@
              xmlns:vms="clr-namespace:MergeNow.ViewModels"
              xmlns:shell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platform="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
-             mc:Ignorable="d" d:Background="White" d:DesignHeight="250" d:DesignWidth="400"
+             mc:Ignorable="d" d:Background="White" d:DesignHeight="270" d:DesignWidth="400"
              IsEnabled="{Binding IsSectionEnabled}">
 
     <d:UserControl.DataContext>
@@ -43,7 +43,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TextBlock Text="Changeset" Margin="0,10,0,0" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0"
@@ -57,7 +57,7 @@
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}"/>
 
         <Button Content="Find" Margin="5,5,0,0" HorizontalAlignment="Left" Width="120" Height="22" Grid.Row="1" Grid.Column="1"
-                Command="{Binding FindCommand}"
+                Grid.ColumnSpan="2" Command="{Binding FindCommand}"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}"/>
 
         <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="5,5,5,0" Style="{StaticResource VsTextBlockStyle}">
@@ -103,8 +103,8 @@
                     </CheckBox.ToolTip>
                 </CheckBox>
 
-                <StackPanel Orientation="Horizontal">
-                    <Button Margin="0,10,0,0" Content="Clean Pending Changes" Height="22"
+                <WrapPanel Orientation="Horizontal">
+                    <Button Margin="0,10,10,0" Content="Clean Pending Changes" Height="22"
                         Command="{Binding ClearPageCommand}" HorizontalAlignment="Left" ToolTipService.InitialShowDelay = "100"
                         Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}">
                         <Button.ToolTip>
@@ -116,11 +116,11 @@
                         </Button.ToolTip>
                     </Button>
 
-                    <Button Margin="10,10,0,0" Content="Clean Merge Now" Height="22" ToolTip="Clears Merge Now section."
+                    <Button Margin="0,10,0,0" Content="Clean Merge Now" Height="22" ToolTip="Clears Merge Now section."
                         Command="{Binding ClearMergeNowCommand}" HorizontalAlignment="Left" ToolTipService.InitialShowDelay = "100"
                         Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}">
                     </Button>
-                </StackPanel>
+                </WrapPanel>
 
             </StackPanel>
         </Expander>
