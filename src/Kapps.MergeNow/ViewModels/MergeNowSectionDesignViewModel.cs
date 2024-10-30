@@ -9,6 +9,7 @@ namespace MergeNow.ViewModels
         public IBaseCommand FindCommand { get; } = new EmptyCommand();
         public IBaseCommand OpenChangesetCommand { get; } = new EmptyCommand();
         public IBaseCommand MergeCommand { get; } = new EmptyCommand();
+        public IBaseCommand ClearPageCommand { get; } = new EmptyCommand();
 
         public ObservableCollection<string> TargetBranches { get; } = new ObservableCollection<string>
         {
@@ -21,6 +22,7 @@ namespace MergeNow.ViewModels
         public string ChangesetName { get; set; } = "My changeset name";
         public string SelectedTargetBranch { get; set; } = "$/releases/r01";
         public bool AnyTargetBranches => true;
-        public bool ClearComment { get; set; } = true;
+        public bool CombinedMerge { get; set; } = true;
+        public bool IsAdvancedExpanded { get; set; } = true;
     }
 }

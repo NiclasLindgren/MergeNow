@@ -89,7 +89,7 @@ namespace MergeNow.Settings
             writableStore.SetString(CollectionPath, propertyName, value?.ToString());
         }
 
-        private string GetSetting(string propertyName, string defaultValue = "")
+        private string GetSetting(string propertyName, string defaultValue)
         {
             if (_settingsManager == null)
             {

@@ -7,7 +7,6 @@ using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Framework.Common;
 using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.TeamFoundation.VersionControl.Common;
-using Microsoft.TeamFoundation.VersionControl.Controls.Extensibility;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TeamFoundation;
 using Microsoft.VisualStudio.TeamFoundation.VersionControl;
@@ -38,6 +37,15 @@ namespace MergeNow.Services
 
         public async Task<bool> IsOnlineAsync()
         {
+            var pendingChangesPage = await GetPendingChangesPageAsync();
+            var viewModel = GetPendingChangesPageViewModel(pendingChangesPage);
+            var workspaceName = ReflectionUtils.GetProperty<string>("CurrentWorkspaceName", viewModel);
+
+            if (workspaceName == "No workspace")
+            {
+                return false;
+            }
+
             var versionControlServer = await GetVersionControlAsync();
             return versionControlServer != null;
         }
@@ -190,6 +198,14 @@ namespace MergeNow.Services
             }
 
             pendingChangesPage.Refresh();
+        }
+
+        public async Task ClearPendingChangesPageAsync()
+        {
+            var pendingChangesPage = await GetPendingChangesPageAsync();
+            SetComment(null, pendingChangesPage);
+            ClearAssociatedWorkItems(pendingChangesPage);
+            ExcludeAll(pendingChangesPage);
         }
 
         private bool ReportMergeStatus(GetStatus mergeStatus)
@@ -370,6 +386,12 @@ namespace MergeNow.Services
         private async Task<ITeamExplorerPage> GetPendingChangesPageAsync()
         {
             var teamExplorer = await GetTeamExplorerAsync();
+
+            if (teamExplorer?.CurrentPage?.Title == "Pending Changes")
+            {
+                return teamExplorer.CurrentPage;
+            }
+
             ITeamExplorerPage pendingChangesPage = teamExplorer?.NavigateToPage(new Guid(TeamExplorerPageIds.PendingChanges), null);
             return pendingChangesPage;
         }
@@ -386,16 +408,16 @@ namespace MergeNow.Services
             return viewModel;
         }
 
-        private static IPendingChangesExt GetPendingChangesExt(ITeamExplorerPage pendingChangesPage)
+        private static object GetPendingCheckinManager(ITeamExplorerPage pendingChangesPage)
         {
-            var viewModel = GetPendingChangesPageViewModel(pendingChangesPage);
-            if (viewModel == null)
+            var model = GetPendingChangesPageModel(pendingChangesPage);
+            if (model == null)
             {
                 return null;
             }
 
-            var pendingChangesExt = ReflectionUtils.GetProperty<IPendingChangesExt>("PendingChangesExt", viewModel);
-            return pendingChangesExt;
+            var pendingCheckinManager = ReflectionUtils.GetProperty<object>("PendingCheckinManager", model);
+            return pendingCheckinManager;
         }
 
         private static Workspace GetCurrentWorkspace(ITeamExplorerPage pendingChangesPage)
@@ -487,15 +509,20 @@ namespace MergeNow.Services
             ReflectionUtils.SetProperty("CheckinComment", model, comment);
         }
 
-        private static void ClearAssociatedWorkItems(ITeamExplorerPage pendingChangesPage)
+        private static void ExcludeAll(ITeamExplorerPage pendingChangesPage)
         {
-            var model = GetPendingChangesPageModel(pendingChangesPage);
-            if (model == null)
+            var pendingCheckinManager = GetPendingCheckinManager(pendingChangesPage);
+            if (pendingCheckinManager == null)
             {
                 return;
             }
 
-            var pendingCheckinManager = ReflectionUtils.GetProperty<object>("PendingCheckinManager", model);
+            ReflectionUtils.InvokeMethod("ExcludeAllIncludedPendingChanges", pendingCheckinManager);
+        }
+
+        private static void ClearAssociatedWorkItems(ITeamExplorerPage pendingChangesPage)
+        {
+            var pendingCheckinManager = GetPendingCheckinManager(pendingChangesPage);
             if (pendingCheckinManager == null)
             {
                 return;

@@ -72,11 +72,11 @@ namespace MergeNow
 
         public void Initialize(object sender, SectionInitializeEventArgs e)
         {
-            _mainViewModel?.Reconnect();
         }
 
         public void Loaded(object sender, SectionLoadedEventArgs e)
         {
+            _mainViewModel?.Reconnect();
         }
 
         public void SaveContext(object sender, SectionSaveContextEventArgs e)

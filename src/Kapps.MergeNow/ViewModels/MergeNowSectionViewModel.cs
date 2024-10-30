@@ -4,11 +4,9 @@ using MergeNow.Core.Utils;
 using MergeNow.Model;
 using MergeNow.Services;
 using Microsoft.TeamFoundation.VersionControl.Client;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 
 namespace MergeNow.ViewModels
 {
@@ -24,6 +22,7 @@ namespace MergeNow.ViewModels
         public IBaseCommand FindCommand { get; }
         public IBaseCommand OpenChangesetCommand { get; }
         public IBaseCommand MergeCommand { get; }
+        public IBaseCommand ClearPageCommand { get; }
 
         public ObservableCollection<string> TargetBranches { get; }
 
@@ -61,11 +60,18 @@ namespace MergeNow.ViewModels
 
         public bool AnyTargetBranches => TargetBranches.Any();
 
-        private bool _clearComment;
-        public bool ClearComment
+        private bool _combinedMerge;
+        public bool CombinedMerge
         {
-            get => _clearComment;
-            set => SetValue(ref _clearComment, value);
+            get => _combinedMerge;
+            set => SetValue(ref _combinedMerge, value);
+        }
+
+        private bool _isAdvancedExpanded;
+        public bool IsAdvancedExpanded
+        {
+            get => _isAdvancedExpanded;
+            set => SetValue(ref _isAdvancedExpanded, value);
         }
 
         public MergeNowSectionViewModel(IMergeNowService mergeNowService, IMessageService messageService)
@@ -85,10 +91,11 @@ namespace MergeNow.ViewModels
             OpenChangesetCommand = new AsyncCommand(_messageService.ShowError, OpenChangesetAsync, CanOpenChangeset);
             LinkToViewModel(OpenChangesetCommand);
 
+            ClearPageCommand = new AsyncCommand(_messageService.ShowError, ClearPageCommandAsync);
+            LinkToViewModel(ClearPageCommand);
+
             TargetBranches = new ObservableCollection<string>();
             LinkToViewModel(TargetBranches);
-
-            ClearComment = true;
 
             MergeHistory = new MergeHistory();
         }
@@ -131,12 +138,17 @@ namespace MergeNow.ViewModels
 
         private Task MergeChangesetAsync()
         {
-            if (ClearComment)
+            if (!CombinedMerge)
             {
                 MergeHistory.Clear();
             }
 
             return _mergeNowService.MergeAsync(SelectedChangeset, SelectedTargetBranch, MergeHistory);
+        }
+
+        private Task ClearPageCommandAsync()
+        {
+            return _mergeNowService.ClearPendingChangesPageAsync();
         }
 
         private bool CanFindChangeset()

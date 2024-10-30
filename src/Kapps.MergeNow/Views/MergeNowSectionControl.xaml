@@ -7,7 +7,7 @@
              xmlns:vms="clr-namespace:MergeNow.ViewModels"
              xmlns:shell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platform="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
-             mc:Ignorable="d" d:Background="White" d:DesignHeight="200" d:DesignWidth="400"
+             mc:Ignorable="d" d:Background="White" d:DesignHeight="250" d:DesignWidth="400"
              IsEnabled="{Binding IsOnline}">
 
     <d:UserControl.DataContext>
@@ -23,6 +23,11 @@
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static platform:EnvironmentColors.PanelHyperlinkBrushKey}}" />
                 <Setter Property="TextDecorations" Value="None" />
             </Style>
+            <Style x:Key="VsExpanderStyle" TargetType="Expander">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static platform:EnvironmentColors.ToolWindowTextBrushKey}}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static platform:EnvironmentColors.ToolWindowBackgroundBrushKey}}" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -33,6 +38,7 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -77,16 +83,40 @@
                 IsEnabled="{Binding AnyTargetBranches}"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ComboBoxStyleKey}}"/>
 
-        <StackPanel Margin="5,5,5,0" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
-                    Orientation="Horizontal" Height="22">
-
-            <Button Content="Merge" Width="120"
-                Command="{Binding MergeCommand}"
+        <Button Content="Merge" Width="120" Margin="5,5,5,0" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
+                Height="22" Command="{Binding MergeCommand}" HorizontalAlignment="Left"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}"/>
 
-            <CheckBox Margin="10,0,0,0" Content="Clear comment on merge" VerticalAlignment="Center"
-                      IsChecked="{Binding ClearComment}"
-                      Style="{DynamicResource {x:Static shell:VsResourceKeys.CheckBoxStyleKey}}"/>
-        </StackPanel>
+        <Expander Header="Advanced" Margin="5,10,5,0" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2"
+                  IsExpanded="{Binding IsAdvancedExpanded}"  Style="{StaticResource VsExpanderStyle}">
+            <StackPanel Orientation="Vertical" Margin="5">
+
+                <CheckBox Margin="0,5,0,0" Content="Combined merge" VerticalAlignment="Center"
+                    IsChecked="{Binding CombinedMerge}" ToolTipService.InitialShowDelay = "100"
+                    Style="{DynamicResource {x:Static shell:VsResourceKeys.CheckBoxStyleKey}}">
+                    <CheckBox.ToolTip>
+                        <TextBlock>
+                            Select when you want several merges inluded in one changeset.
+                            <LineBreak />
+                            The changeset comment will be amended not replaced.
+                        </TextBlock>
+                    </CheckBox.ToolTip>
+                </CheckBox>
+
+                <Button Margin="0,10,0,0" Content="Clean Pending Changes" Height="22"
+                    Command="{Binding ClearPageCommand}" HorizontalAlignment="Left" ToolTipService.InitialShowDelay = "100"
+                    Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}">
+                    <Button.ToolTip>
+                        <TextBlock>
+                            Clears comment, workitems and exludes all pending changes.
+                            <LineBreak />
+                            This will not undo your pending changes.
+                        </TextBlock>
+                    </Button.ToolTip>
+                </Button>
+
+            </StackPanel>
+        </Expander>
+
     </Grid>
 </UserControl>
