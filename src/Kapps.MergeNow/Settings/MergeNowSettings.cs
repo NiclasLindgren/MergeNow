@@ -13,18 +13,24 @@ namespace MergeNow.Settings
 
         private const string DefaultCommentFormat = "Merge {MergeFromTo}, c{ChangesetNumber}, {ChangesetComment}";
         private const string DefaultMergeDelimeter = "->";
+        private const bool DefaultStartExpanded = true;
 
         private readonly ShellSettingsManager _settingsManager;
 
-        [Category("General")]
+        [Category("Merge Settings")]
         [DisplayName("Comment Format")]
         [Description("Specify a merge comment format. Available special tags: {MergeFromTo}, {ChangesetNumber}, {ChangesetComment}, {ChangesetOwner}.")]
         public string CommentFormat { get; set; }
 
-        [Category("General")]
+        [Category("Merge Settings")]
         [DisplayName("Merge Delimeter")]
         [Description("Delimeter used for {MergeFromTo} special tag in 'Comment Format' setting.")]
         public string MergeDelimeter { get; set; }
+
+        [Category("UI")]
+        [DisplayName("Start Expanded")]
+        [Description("Expand Merge Now section when Pending Changes page is opened for the first time.")]
+        public bool StartExpanded { get; set; }
 
         public MergeNowSettings()
         {
@@ -52,6 +58,7 @@ namespace MergeNow.Settings
             {
                 CommentFormat = GetSetting(nameof(CommentFormat), DefaultCommentFormat);
                 MergeDelimeter = GetSetting(nameof(MergeDelimeter), DefaultMergeDelimeter);
+                StartExpanded = GetSetting(nameof(StartExpanded), DefaultStartExpanded);
             }
             catch (Exception ex)
             {
@@ -65,6 +72,7 @@ namespace MergeNow.Settings
             {
                 SaveSetting(nameof(CommentFormat), CommentFormat);
                 SaveSetting(nameof(MergeDelimeter), MergeDelimeter);
+                SaveSetting(nameof(StartExpanded), StartExpanded);
             }
             catch (Exception ex)
             {
@@ -104,6 +112,12 @@ namespace MergeNow.Settings
             }
 
             return defaultValue;
+        }
+
+        private bool GetSetting(string propertyName, bool defaultValue)
+        {
+            var setting = GetSetting(propertyName, defaultValue.ToString());
+            return setting?.ToUpper() == "TRUE";
         }
     }
 }

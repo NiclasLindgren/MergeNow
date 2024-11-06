@@ -14,6 +14,7 @@ namespace MergeNow
 
         private readonly MergeNowSectionViewModel _mainViewModel;
         private readonly MergeNowSectionControl _mainView;
+        private readonly MergeNowSectionMemento _memento;
 
         public MergeNowSection()
         {
@@ -28,6 +29,18 @@ namespace MergeNow
             {
                 Logger.Error("Failed to initialize Merge Now.", ex);
             }
+
+            try
+            {
+                _memento = MergeNowPackage.Resolve<MergeNowSectionMemento>() ?? new MergeNowSectionMemento();
+            }
+            catch (Exception ex)
+            {
+                _memento = new MergeNowSectionMemento();
+                Logger.Error("Failed to load Merge Now memento.", ex);
+            }
+
+            IsExpanded = _memento.IsExpanded;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -48,7 +61,7 @@ namespace MergeNow
             }
         }
 
-        private bool _isExpanded = true;
+        private bool _isExpanded;
         public bool IsExpanded
         {
             get => _isExpanded;
@@ -56,6 +69,7 @@ namespace MergeNow
             {
                 _isExpanded = value;
                 OnPropertyChanged(nameof(IsExpanded));
+                _memento.IsExpanded = value;
             }
         }
 

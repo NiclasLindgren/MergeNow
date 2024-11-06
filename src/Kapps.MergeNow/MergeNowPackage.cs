@@ -44,6 +44,7 @@ namespace MergeNow
             services.AddSingleton<IMessageService, MessageService>();
             services.AddSingleton<IMergeNowService, MergeNowService>();
             services.AddSingleton<MergeNowSectionViewModel>();
+            services.AddSingleton<MergeNowSectionMemento>();
         }
 
         public static TControl Resolve<TControl>() where TControl : class

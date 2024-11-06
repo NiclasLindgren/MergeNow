@@ -72,6 +72,7 @@
     <Compile Include="Core\Mvvm\BaseViewModel.cs" />
     <Compile Include="Core\Utils\ReflectionUtils.cs" />
     <Compile Include="Core\Utils\StringUtils.cs" />
+    <Compile Include="MergeNowSectionMemento.cs" />
     <Compile Include="ViewModels\IMergeNowSectionViewModel.cs" />
     <Compile Include="ViewModels\MergeNowSectionDesignViewModel.cs" />
     <Compile Include="ViewModels\MergeNowSectionViewModel.cs" />

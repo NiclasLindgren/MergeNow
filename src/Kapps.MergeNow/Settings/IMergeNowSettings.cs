@@ -12,5 +12,10 @@
         /// Delimeter used for {MergeFromTo} special tag in 'Comment Format' setting.
         /// </summary>
         string MergeDelimeter { get; set; }
+
+        /// <summary>
+        /// Expand Merge Now section when Pending Changes page is opened for the first time.
+        /// </summary>
+        bool StartExpanded { get; set; }
     }
 }
