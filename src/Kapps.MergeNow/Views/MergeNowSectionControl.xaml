@@ -96,7 +96,7 @@
                     Style="{DynamicResource {x:Static shell:VsResourceKeys.CheckBoxStyleKey}}">
                     <CheckBox.ToolTip>
                         <TextBlock>
-                            Select when you want several merges inluded in one changeset.
+                            Select when you want to inlude several merges to different target branches in one changeset.
                             <LineBreak />
                             The changeset comment will be amended not replaced.
                         </TextBlock>
@@ -109,7 +109,7 @@
                         Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}">
                         <Button.ToolTip>
                             <TextBlock>
-                                Clears comment, workitems and exludes all pending changes.
+                                Clears comment, clears associated workitems and excludes all pending changes.
                                 <LineBreak />
                                 This will not undo your pending changes.
                             </TextBlock>

@@ -225,9 +225,9 @@ namespace MergeNow.Services
 
             if (mergeStatus.NoActionNeeded)
             {
-                status.AppendLine("Merge complete");
+                status.AppendLine("Merge cancelled");
                 status.AppendLine();
-                status.AppendLine("There are no files left to merge");
+                status.AppendLine("There are no changes to be merged.");
 
                 _messageService.ShowMessage(status.ToString());
                 return false;
@@ -278,16 +278,17 @@ namespace MergeNow.Services
             var failures = mergeStatus.GetFailures();
             if (failures.Any())
             {
-                status.AppendLine("Merge completed with failures");
+                status.AppendLine("Merge partially complited");
                 AddStatusInfo();
-                status.AppendLine("Open Team Explorer Output panel to see failure details");
+                status.AppendLine("Open Team Explorer Output panel to see failure details.");
 
                 _messageService.ShowWarning(status.ToString());
             }
             else
             {
-                status.AppendLine("Merge complete");
+                status.AppendLine("Merge completed");
                 AddStatusInfo();
+                status.AppendLine("Please review the changes and check-in manually.");
 
                 _messageService.ShowMessage(status.ToString());
             }
