@@ -72,7 +72,9 @@ namespace MergeNow.Services
         public async Task<Changeset[]> GetHistoryViewSelectedChangesetsAsync()
         {
             var versionControlExt = await GetVersionControlExtAsync();
+            #pragma warning disable CS0618 // Type or member is obsolete
             Changeset[] changesets = versionControlExt?.History?.SelectedItems ?? new Changeset[0];
+            #pragma warning restore CS0618 // Type or member is obsolete
             return changesets;
         }
 
