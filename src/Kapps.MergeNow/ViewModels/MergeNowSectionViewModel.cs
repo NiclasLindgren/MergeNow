@@ -4,7 +4,6 @@ using MergeNow.Core.Utils;
 using MergeNow.Model;
 using MergeNow.Services;
 using Microsoft.TeamFoundation.VersionControl.Client;
-using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -215,6 +214,25 @@ namespace MergeNow.ViewModels
             TargetBranches.Clear();
 
             MergeHistory.Clear();
+        }
+
+        public void ShowForSelectedHistoryViewChangeset()
+        {
+            Changeset[] changesets = _mergeNowService
+                .GetHistoryViewSelectedChangesetsAsync()
+                .ReturnAsyncCatchErrors(_messageService.ShowError);
+
+            if (changesets.Length == 0)
+            {
+                return;
+            }
+
+            _mergeNowService
+                .NavigateToPendingChangePageAsync()
+                .FireAsyncCatchErrors(_messageService.ShowError);
+
+            ApplyChangesetAsync(changesets.FirstOrDefault())
+                .FireAsyncCatchErrors(_messageService.ShowError);
         }
     }
 }

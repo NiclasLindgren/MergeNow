@@ -15,11 +15,10 @@ namespace MergeNow
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideAutoLoad(UIContextGuids80.NoSolution, PackageAutoLoadFlags.BackgroundLoad)]
     [InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Version)]
-    [Guid(PackageGuidString)]
+    [Guid(PackageGuids.guidMergeNowPackageString)]
+    [ProvideMenuResource("Menus.ctmenu", 1)]
     public sealed class MergeNowPackage : AsyncPackage
     {
-        public const string PackageGuidString = "0741861b-9c7e-4aad-a1d2-04379f0caa44";
-
         private static IServiceProvider ServiceProvider { get; set; }
 
         protected async override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -33,6 +32,16 @@ namespace MergeNow
             catch (Exception ex)
             {
                 Logger.Error("Failed to initialize Merge Now service provider.", ex);
+            }
+
+            try
+            {
+                var viewModel = Resolve<MergeNowSectionViewModel>();
+                await MergeNowCommand.InitializeAsync(this, viewModel);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to initialize Merge Now Changeset History context menu item.", ex);
             }
 
             await base.InitializeAsync(cancellationToken, progress);

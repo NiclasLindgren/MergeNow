@@ -13,6 +13,8 @@ namespace MergeNow.Services
 
         Task<Changeset> BrowseChangesetAsync();
 
+        Task<Changeset[]> GetHistoryViewSelectedChangesetsAsync();
+
         Task ViewChangesetDetailsAsync(Changeset changeset);
 
         Task<IEnumerable<string>> GetTargetBranchesAsync(Changeset changeset);
@@ -20,5 +22,7 @@ namespace MergeNow.Services
         Task MergeAsync(Changeset changeset, string targetBranch, MergeHistory mergeHistory);
 
         Task ClearPendingChangesPageAsync();
+
+        Task NavigateToPendingChangePageAsync();
     }
 }

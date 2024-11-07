@@ -69,6 +69,13 @@ namespace MergeNow.Services
             return changeset;
         }
 
+        public async Task<Changeset[]> GetHistoryViewSelectedChangesetsAsync()
+        {
+            var versionControlExt = await GetVersionControlExtAsync();
+            Changeset[] changesets = versionControlExt?.History?.SelectedItems ?? new Changeset[0];
+            return changesets;
+        }
+
         public async Task ViewChangesetDetailsAsync(Changeset changeset)
         {
             if (changeset == null)
@@ -212,6 +219,12 @@ namespace MergeNow.Services
             SetComment(null, pendingChangesPage);
             ClearAssociatedWorkItems(pendingChangesPage);
             ExcludeAll(pendingChangesPage);
+        }
+
+        public async Task NavigateToPendingChangePageAsync()
+        {
+            var teamExplorer = await GetTeamExplorerAsync();
+            teamExplorer?.NavigateToPage(new Guid(TeamExplorerPageIds.PendingChanges), null);
         }
 
         private bool ReportMergeStatus(GetStatus mergeStatus)
