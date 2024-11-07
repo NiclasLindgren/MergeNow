@@ -14,6 +14,7 @@ namespace MergeNow
     [ProvideOptionPage(typeof(MergeNowSettings), "Merge Now", "General", 0, 0, true)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideAutoLoad(UIContextGuids80.NoSolution, PackageAutoLoadFlags.BackgroundLoad)]
+    [InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Version)]
     [Guid(PackageGuidString)]
     public sealed class MergeNowPackage : AsyncPackage
     {
@@ -21,7 +22,7 @@ namespace MergeNow
 
         private static IServiceProvider ServiceProvider { get; set; }
 
-        protected override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        protected async override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             try
             {
@@ -34,7 +35,7 @@ namespace MergeNow
                 Logger.Error("Failed to initialize Merge Now service provider.", ex);
             }
 
-            return base.InitializeAsync(cancellationToken, progress);
+            await base.InitializeAsync(cancellationToken, progress);
         }
 
         private void ConfigureServices(IServiceCollection services)

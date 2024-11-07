@@ -73,6 +73,11 @@
     <Compile Include="Core\Utils\ReflectionUtils.cs" />
     <Compile Include="Core\Utils\StringUtils.cs" />
     <Compile Include="MergeNowSectionMemento.cs" />
+    <Compile Include="source.extension.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>source.extension.vsixmanifest</DependentUpon>
+    </Compile>
     <Compile Include="ViewModels\IMergeNowSectionViewModel.cs" />
     <Compile Include="ViewModels\MergeNowSectionDesignViewModel.cs" />
     <Compile Include="ViewModels\MergeNowSectionViewModel.cs" />
@@ -85,6 +90,8 @@
     <None Include="MergeNowKey.snk" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
+      <Generator>VsixManifestGenerator</Generator>
+      <LastGenOutput>source.extension.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
