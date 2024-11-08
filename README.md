@@ -6,7 +6,6 @@ Pick a changeset and merge it directly to selected target branch:
 
 # Installation
 Get the extension from [here](https://marketplace.visualstudio.com/items?itemName=KamilWachala.MergeNow10) and double clik on the VSIX file.
-Alternativly look for "MergeNow" extension in Visual Studio Extension Manager.
 
 # Requirements
 * Microsoft Visual Studio 2022 installed
