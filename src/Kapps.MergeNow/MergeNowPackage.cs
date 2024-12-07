@@ -37,6 +37,10 @@ namespace MergeNow
             try
             {
                 var viewModel = Resolve<MergeNowSectionViewModel>();
+                // Cheating a bit, this is circular, but not sure how it should be done.
+                var messageService = (MessageService)Resolve<IMessageService>();
+                messageService.SetViewModel(viewModel); 
+
                 await MergeNowCommand.InitializeAsync(this, viewModel);
             }
             catch (Exception ex)

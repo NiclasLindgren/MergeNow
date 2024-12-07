@@ -301,7 +301,7 @@ namespace MergeNow.Services
             }
             else
             {
-                status.AppendLine("Merge completed");
+                status.AppendLine("Merge completed by me");
                 AddStatusInfo();
                 status.AppendLine("Please review the changes and check-in manually.");
 

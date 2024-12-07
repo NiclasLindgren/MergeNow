@@ -1,10 +1,20 @@
-﻿using System;
+﻿using MergeNow.ViewModels;
+using System;
 using System.Windows;
 
 namespace MergeNow.Services
 {
     public class MessageService : IMessageService
     {
+        private MergeNowSectionViewModel _viewModel;
+        public MessageService() 
+        {
+        }
+
+        public void SetViewModel(MergeNowSectionViewModel viewModel)
+        {
+            _viewModel = viewModel;
+        }
         public void ShowMessage(string message) => Show(message, MessageBoxImage.Information);
 
         public void ShowWarning(string message) => Show(message, MessageBoxImage.Warning);
@@ -21,14 +31,21 @@ namespace MergeNow.Services
             Show(exception?.Message, MessageBoxImage.Error);
         }
 
-        private static void Show(string message, MessageBoxImage messageBoxImage)
+        private void Show(string message, MessageBoxImage messageBoxImage)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
                 return;
             }
 
-            MessageBox.Show(message, "Merge Now", MessageBoxButton.OK, messageBoxImage);
+            if (messageBoxImage == MessageBoxImage.Information)
+            {
+                _viewModel.Message = message;
+            }
+            else
+            {
+                MessageBox.Show(message, "Merge Now", MessageBoxButton.OK, messageBoxImage);
+            }
         }
     }
 }

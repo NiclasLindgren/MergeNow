@@ -7,7 +7,7 @@
              xmlns:vms="clr-namespace:MergeNow.ViewModels"
              xmlns:shell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platform="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
-             mc:Ignorable="d" d:Background="White" d:DesignHeight="270" d:DesignWidth="400"
+             mc:Ignorable="d" d:Background="White" d:DesignHeight="350" d:DesignWidth="400"
              IsEnabled="{Binding IsSectionEnabled}">
 
     <d:UserControl.DataContext>
@@ -45,13 +45,14 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Changeset" Margin="0,10,0,0" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0"
+        <TextBlock Text="Changeset" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0"
                 Style="{StaticResource VsTextBlockStyle}"/>
-        <TextBox Margin="5,10,0,0" Height="22" Grid.Row="0" Grid.Column="1" x:Name="ChangesetNumberTb"
+        <TextBox Margin="5,0,0,0" Height="22" Grid.Row="0" Grid.Column="1" x:Name="ChangesetNumberTb"
                 Text="{Binding ChangesetNumber, UpdateSourceTrigger=PropertyChanged}"
-                Style="{DynamicResource {x:Static shell:VsResourceKeys.TextBoxStyleKey}}"/>
+                Style="{DynamicResource {x:Static shell:VsResourceKeys.TextBoxStyleKey}}" VerticalAlignment="Center"/>
         <TextBlock Margin="5,10,0,0" Height="22" Grid.Row="0" Grid.Column="1" IsHitTestVisible="False" Opacity="0.5"
                    Text="Enter a changeset number" VerticalAlignment="Center" HorizontalAlignment="Left" Padding="3">
             <TextBlock.Style>
@@ -70,7 +71,7 @@
             </TextBlock.Style>
         </TextBlock>
 
-        <Button Content="..." Margin="5,10,1,0" VerticalAlignment="Center" Width="30" Height="22" Grid.Row="0" Grid.Column="3"
+        <Button Content="..." Margin="5,0,0,0" VerticalAlignment="Center" Width="30" Height="22" Grid.Row="0" Grid.Column="3"
                 Command="{Binding BrowseCommand}"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}"/>
 
@@ -94,9 +95,9 @@
             </Hyperlink>
         </TextBlock>
 
-        <TextBlock Text="Merge To" Margin="0,10,0,0" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0"
-                Style="{StaticResource VsTextBlockStyle}"/>
-        <ComboBox Margin="5,10,1,0" Height="22" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" x:Name="TargetBranchCb"
+        <TextBlock Text="Merge To" Grid.Row="3" Grid.Column="0"
+                Style="{StaticResource VsTextBlockStyle}" VerticalAlignment="Center"/>
+        <ComboBox Margin="5,5,0,0" Height="22" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" x:Name="TargetBranchCb"
                 ItemsSource="{Binding TargetBranches}" SelectedItem="{Binding SelectedTargetBranch}"
                 IsEnabled="{Binding AnyTargetBranches}"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ComboBoxStyleKey}}"/>
@@ -122,7 +123,7 @@
                 Height="22" Command="{Binding MergeCommand}" HorizontalAlignment="Left"
                 Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}"/>
 
-        <Expander Header="Advanced" Margin="5,10,5,0" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2"
+        <Expander Header="Advanced" Margin="5,5,0,0" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2"
                   IsExpanded="{Binding IsAdvancedExpanded}"  Style="{StaticResource VsExpanderStyle}">
             <StackPanel Orientation="Vertical" Margin="5">
 
@@ -139,7 +140,7 @@
                 </CheckBox>
 
                 <WrapPanel Orientation="Horizontal">
-                    <Button Margin="0,10,10,0" Content="Clear Pending Changes" Height="22"
+                    <Button Margin="0,10,10,0" Content="Clear Pending Changes" Height="22" Padding="5,0"
                         Command="{Binding ClearPageCommand}" HorizontalAlignment="Left" ToolTipService.InitialShowDelay = "100"
                         Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}">
                         <Button.ToolTip>
@@ -151,14 +152,18 @@
                         </Button.ToolTip>
                     </Button>
 
-                    <Button Margin="0,10,0,0" Content="Clear Merge Now" Height="22" ToolTip="Clears Merge Now section."
+                    <Button Margin="0,10,0,0" Content="Clear Merge Now" Height="22" ToolTip="Clears Merge Now section." Padding="5,0"
                         Command="{Binding ClearMergeNowCommand}" HorizontalAlignment="Left" ToolTipService.InitialShowDelay = "100"
                         Style="{DynamicResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}">
                     </Button>
                 </WrapPanel>
-
             </StackPanel>
         </Expander>
+        <TextBlock Text="Status" VerticalAlignment="Center" Grid.Row="6" Grid.Column="0"
+                Style="{StaticResource VsTextBlockStyle}"/>
+        <TextBox Margin="5,5,0,0" Grid.Row="6" Grid.Column="1" x:Name="Message" Grid.ColumnSpan="2"
+            Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}"
+            Style="{DynamicResource {x:Static shell:VsResourceKeys.TextBoxStyleKey}}" MinHeight="80" VerticalAlignment="Top"/>
 
     </Grid>
 </UserControl>
