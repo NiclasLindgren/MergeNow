@@ -107,7 +107,7 @@ namespace MergeNow.Services
                 targetBranches.AddRange(branches);
             }
 
-            return targetBranches.Distinct(StringComparer.OrdinalIgnoreCase);
+            return targetBranches.Distinct(StringComparer.OrdinalIgnoreCase).OrderByDescending(x => x, new AlphanumComparator());
         }
 
         public async Task MergeAsync(Changeset changeset, string targetBranch, MergeHistory mergeHistory)

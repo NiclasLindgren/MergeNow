@@ -66,6 +66,7 @@
     <Compile Include="Core\Mvvm\Commands\IAsyncCommand.cs" />
     <Compile Include="Core\Mvvm\Commands\IBaseCommand.cs" />
     <Compile Include="Model\MergeHistory.cs" />
+    <Compile Include="Services\AlphanumComparator.cs" />
     <Compile Include="Services\IMessageService.cs" />
     <Compile Include="Services\MessageService.cs" />
     <Compile Include="Settings\IMergeNowSettings.cs" />
