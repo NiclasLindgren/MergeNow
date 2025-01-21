@@ -240,7 +240,7 @@ namespace MergeNow.Services
 
             if (mergeStatus.NoActionNeeded)
             {
-                status.AppendLine("Merge cancelled");
+                status.AppendLine("Merge cancelled.");
                 status.AppendLine();
                 status.AppendLine("There are no changes to be merged.");
 
@@ -251,40 +251,41 @@ namespace MergeNow.Services
             void AddStatusInfo()
             {
                 status.AppendLine();
+                status.AppendLine($"Merge statistics:");
 
                 if (mergeStatus.NumFiles > 0)
                 {
-                    status.AppendLine($"Number of Files: {mergeStatus.NumFiles}");
+                    status.AppendLine($"Files: {mergeStatus.NumFiles}");
                 }
 
                 if (mergeStatus.NumUpdated > 0)
                 {
-                    status.AppendLine($"Number of Updates: {mergeStatus.NumUpdated}");
+                    status.AppendLine($"Updates: {mergeStatus.NumUpdated}");
                 }
 
                 if (mergeStatus.NumOperations > 0)
                 {
-                    status.AppendLine($"Number of Operations: {mergeStatus.NumOperations}");
+                    status.AppendLine($"Operations: {mergeStatus.NumOperations}");
                 }
 
                 if (mergeStatus.NumConflicts > 0)
                 {
-                    status.AppendLine($"Number of Conflicts: {mergeStatus.NumConflicts}");
+                    status.AppendLine($"Conflicts: {mergeStatus.NumConflicts}");
                 }
 
                 if (mergeStatus.NumResolvedConflicts > 0)
                 {
-                    status.AppendLine($"Number of Resolved Conflicts: {mergeStatus.NumResolvedConflicts}");
+                    status.AppendLine($"Resolved Conflicts: {mergeStatus.NumResolvedConflicts}");
                 }
 
                 if (mergeStatus.NumWarnings > 0)
                 {
-                    status.AppendLine($"Number of Warnings: {mergeStatus.NumWarnings}");
+                    status.AppendLine($"Warnings: {mergeStatus.NumWarnings}");
                 }
 
                 if (mergeStatus.NumFailures > 0)
                 {
-                    status.AppendLine($"Number of Failures: {mergeStatus.NumFailures}");
+                    status.AppendLine($"Failures: {mergeStatus.NumFailures}");
                 }
 
                 status.AppendLine();
@@ -293,7 +294,7 @@ namespace MergeNow.Services
             var failures = mergeStatus.GetFailures();
             if (failures.Any())
             {
-                status.AppendLine("Merge partially complited");
+                status.AppendLine("Merge partially complited.");
                 AddStatusInfo();
                 status.AppendLine("Open Team Explorer Output panel to see failure details.");
 
@@ -301,7 +302,7 @@ namespace MergeNow.Services
             }
             else
             {
-                status.AppendLine("Merge completed");
+                status.AppendLine("Merge completed.");
                 AddStatusInfo();
                 status.AppendLine("Please review the changes and check-in manually.");
 
