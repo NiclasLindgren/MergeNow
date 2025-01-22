@@ -24,7 +24,7 @@ Get the extension from [here](https://marketplace.visualstudio.com/items?itemNam
     
      ![MergeNow view](https://github.com/kamil-wachala/MergeNow/blob/main/docs/FindChangeset.png)
     
-  * Finding a changeset in VS View History window, then selecting Merge Now from right click context menu
+  * Finding a changeset in VS View History window and selecting Merge Now from right click context menu
     
     ![MergeNow view](https://github.com/kamil-wachala/MergeNow/blob/main/docs/History.png)
     
