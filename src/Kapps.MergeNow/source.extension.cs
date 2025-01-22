@@ -11,7 +11,7 @@ namespace MergeNow
         public const string Name = "MergeNow";
         public const string Description = @"Visual Studio 2022 extension for making quick TFVC merges. Pick a changeset and merge it directly to selected target branch.";
         public const string Language = "en-US";
-        public const string Version = "3.2";
+        public const string Version = "4.0";
         public const string Author = "Kamil Wachala";
         public const string Tags = "tfs; tfvs; visual studio; extension; changeset; merge";
     }
