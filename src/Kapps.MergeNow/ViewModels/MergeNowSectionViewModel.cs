@@ -4,9 +4,12 @@ using MergeNow.Core.Utils;
 using MergeNow.Model;
 using MergeNow.Services;
 using Microsoft.TeamFoundation.VersionControl.Client;
+using Microsoft.VisualStudio.Shell;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace MergeNow.ViewModels
 {
@@ -42,6 +45,30 @@ namespace MergeNow.ViewModels
             {
                 SetValue(ref _changesetNumber, value);
                 ResetView();
+            }
+        }
+
+        private string _message = "";
+        public string Message
+        {
+            get => _message;
+            set
+            {
+                if (!Application.Current.Dispatcher.CheckAccess())
+                {
+                    ThreadHelper.JoinableTaskFactory.Run(async delegate
+                    {
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        SetValue(ref _message, value);
+                    });
+                    return;
+                }
+                //if (!Application.Current.Dispatcher.CheckAccess())
+                //{
+                //    Application.Current.Dispatcher.Invoke(() => { SetValue(ref _message, value); });
+                //    return;
+                //}
+                SetValue(ref _message, value);
             }
         }
 
@@ -168,6 +195,7 @@ namespace MergeNow.ViewModels
         private Task ClearMergeNowCommandAsync()
         {
             ChangesetNumber = null;
+            Message = "";
             return Task.CompletedTask;
         }
 

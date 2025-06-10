@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MergeNow.ViewModels;
+using System;
 
 namespace MergeNow.Services
 {
